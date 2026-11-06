@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>交互流程 · 储能集群调度大屏</title>
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/components.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/docs.css?v=1.3.0">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/components.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/docs.css?v=1.3.2">
 <style>
   .mermaid{display:flex;justify-content:center;background:rgba(12,22,35,.55);border:1px solid var(--line-1);border-radius:3px;padding:14px 8px;overflow-x:auto}
   .mermaid svg{max-width:100%;height:auto}
@@ -45,8 +45,10 @@
       <div class="crumbs-doc">储能电站集群数字孪生调度大屏 <span>/</span> <b>交互流程</b></div>
       <h1>告警闭环 · 三级下钻 · 策略下发 · 异常边界</h1>
       <p>
-        本文档定义大屏四条核心链路的状态、触发与反馈规则，图源为 Mermaid（可复制到支持 Mermaid 的工具二次编辑））
-        配套文字规则表描述每条边的触发条件、界面响应与数据响应。所有流转满足「一次点击、一个明确响应」。
+        本文档定义大屏四条核心链路的状态、触发与反馈规则，图源为 Mermaid（可复制到支持 Mermaid 的工具二次编辑））
+
+        配套文字规则表描述每条边的触发条件、界面响应与数据响应。所有流转满足「一次点击、一个明确响应」。
+
       </p>
     </div>
 
@@ -66,8 +68,10 @@ stateDiagram-v2
     s0 --> s1 : 点击「确认」<br/>责任认定
     s1 --> s2 : 点击「闭环」<br/>处置完成
     s0 --> s3 : 设置抑制窗口
-    s3 --> s0 : 窗口结束<br/>恢复未确认
-    s1 --> s3 : 确认后暂缓<br/>设窗口
+    s3 --> s0 : 窗口结束<br/>恢复未确认
+
+    s1 --> s3 : 确认后暂缓<br/>设窗口
+
     s2 --> [*]
           </pre>
         </div>
@@ -81,8 +85,10 @@ stateDiagram-v2
     s0 --> s1 : 点击「确认」 责任认定
     s1 --> s2 : 点击「闭环」 处置完成
     s0 --> s3 : 设置抑制窗口
-    s3 --> s0 : 窗口结束 恢复未确认
-    s1 --> s3 : 确认后暂缓 设窗口
+    s3 --> s0 : 窗口结束 恢复未确认
+
+    s1 --> s3 : 确认后暂缓 设窗口
+
     s2 --> [*]</pre></details>
       </div>
       <div class="card" style="margin-top:12px">

@@ -49,7 +49,7 @@ try {
     playwright-cli reload | Out-Null
     playwright-cli resize $vp.w $vp.h | Out-Null
     Start-Sleep -Milliseconds 900
-    $j = Get-Json (playwright-cli eval "(() => { const canScroll = () => { const y = scrollY; scrollTo(0, 9e5); const m = scrollY > 0; scrollTo(0, y); return m; }; const lis = [...document.querySelectorAll('#alertList [role=listitem]')]; return JSON.stringify({ overflowX: document.documentElement.scrollWidth > innerWidth, scrollY: canScroll(), alertFs: parseFloat(getComputedStyle(document.querySelector('.al-txt')).fontSize), chipH: document.querySelector('#alertFilters .chip').offsetHeight, rows: document.querySelectorAll('#alertList .al-row').length, leftColW: Math.round(document.querySelector('.col-left').getBoundingClientRect().width * 10) / 10, alRowH: Math.round(document.querySelector('.al-row').getBoundingClientRect().height), liCount: lis.length, ariaOk: lis.filter(l => /^[^，]+告警，[^，]+，.+/.test(l.getAttribute('aria-label') || '')).length }); })()")
+    $j = Get-Json (playwright-cli eval "(() => { const canScroll = () => { const y = scrollY; scrollTo(0, 9e5); const m = scrollY > 0; scrollTo(0, y); return m; }; const lis = [...document.querySelectorAll('#alertList [role=listitem]')]; return JSON.stringify({ overflowX: document.documentElement.scrollWidth > innerWidth, scrollY: canScroll(), alertFs: parseFloat(getComputedStyle(document.querySelector('.al-txt')).fontSize), chipH: document.querySelector('#alertFilters .chip').offsetHeight, rows: document.querySelectorAll('#alertList .al-row').length, leftColW: Math.round(document.querySelector('.col-left').getBoundingClientRect().width * 10) / 10, alRowH: Math.round(document.querySelector('.al-row').getBoundingClientRect().height), liCount: lis.length, tabH: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().height), tabW: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().width), hdH: Math.round(document.querySelector('#chartsPanel .panel-hd').getBoundingClientRect().height), metaW: Math.round(document.getElementById('chartMeta').getBoundingClientRect().width), ariaOk: lis.filter(l => /^[^，]+告警，[^，]+，.+/.test(l.getAttribute('aria-label') || '')).length }); })()")
     $o = $j | ConvertFrom-Json
     Assert (-not $o.overflowX) "无横向溢出" "实际 scrollWidth 大于视口——嫌疑：.app overflow:hidden 被移除、或某元素超出流式网格（用 .playwright-cli 截图排查溢出源）"
     Assert (-not $o.scrollY)   "无页面滚动（含标注层缩放溢出）" "实际可纵向滚动——嫌疑：.anno-layer 缩放溢出未被裁剪（.app{overflow:hidden} 是否还在？）"
@@ -61,6 +61,13 @@ try {
     Assert ([Math]::Abs($o.leftColW - $vp.expLeft) -le 2) "左列宽 $($o.leftColW)px ≈ 期望 $($vp.expLeft)px（断点命中正确）" "期望 $($vp.expLeft) 实际 $($o.leftColW)——嫌疑：@media 断点错位（检查 dashboard.css max-width:1400/1100 块）或 clamp 值被改动"
     if ($vp.expRow -gt 0) {
       Assert ([Math]::Abs($o.alRowH - $vp.expRow) -le 3) "告警行高 $($o.alRowH)px ≈ 期望 $($vp.expRow)px（断点命中正确）" "期望 $($vp.expRow) 实际 $($o.alRowH)——嫌疑：al-row 单行化（max-height:820）或 2K 档规则未命中"
+    }
+    # 趋势区防破版断言（v1.3.2）：右栏 300~460px 反复出事点——Tab 文字换行/证据挤压会让面板头长高
+    Assert ($o.tabH -le 30) "趋势 Tab「功率」单行（高 $($o.tabH)px ≤ 30px）" "Tab 文字换行成两行——嫌疑：.chart-tabs button 丢失 white-space:nowrap 或 flex-shrink:0（dashboard.css 趋势段）"
+    Assert ($o.tabW -ge 44) "趋势 Tab 宽 $($o.tabW)px ≥ 44px（未被压扁）" "Tab 被 flex 挤压——嫌疑：#chartsPanel .panel-hd h3 / .meta 未设 flex-shrink:0，标题把 Tab 挤没"
+    Assert ($o.hdH -le 46) "趋势面板头高 $($o.hdH)px ≤ 46px（单行）" "面板头被撑高——嫌疑：Tab/证据/明细按钮任一换行（同时检查 meta 文案长度）"
+    if ($o.metaW -gt 0) {
+      Assert ($o.metaW -ge 24) "头部证据「对照」宽 $($o.metaW)px ≥ 24px（未竖排）" "证据被挤成 20px 竖排——嫌疑：#chartsPanel .panel-hd .meta 丢失 flex-shrink:0 或 max-width 过小"
     }
     if ($script:failInView) {
       $shot = "$PSScriptRoot/artifacts/fail-$($vp.w)x$($vp.h).png"

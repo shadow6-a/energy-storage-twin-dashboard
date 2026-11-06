@@ -60,7 +60,10 @@
     if (!host) return;
     const w = host.clientWidth || 600;
     const h = host.clientHeight || 240;
-    const pad = { l: 56, r: 12, t: 12, b: 26 };
+    /* v1.3.2：窄容器（右栏 320~380px 时主图仅 ~300px）自适应内边距——
+       否则 Y 轴刻度贴边、X 轴 7 个时刻标签互相粘连 */
+    const compact = w < 360;
+    const pad = { l: compact ? 42 : 56, r: compact ? 8 : 12, t: 10, b: compact ? 22 : 26 };
     const pw = Math.max(10, w - pad.l - pad.r);
     const ph = Math.max(10, h - pad.t - pad.b);
     const n = opts.labels.length;
@@ -84,16 +87,16 @@
     ticks.forEach(t => {
       const y = Y(t);
       body += `<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${w - pad.r}" y2="${y.toFixed(1)}" stroke="${t === 0 ? 'rgba(126,163,196,.28)' : T.grid}" stroke-width="1" ${t === 0 ? 'stroke-dasharray="2 3"' : ''}/>`;
-      body += `<text x="${pad.l - 9}" y="${(y + 4.5).toFixed(1)}" text-anchor="end" font-size="13" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${Math.abs(t) >= 100 ? t.toFixed(0) : t.toFixed(Math.abs(t) < 10 ? 1 : 0)}</text>`;
+      body += `<text x="${pad.l - (compact ? 6 : 9)}" y="${(y + 4.5).toFixed(1)}" text-anchor="end" font-size="${compact ? 10.5 : 13}" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${Math.abs(t) >= 100 ? t.toFixed(0) : t.toFixed(Math.abs(t) < 10 ? 1 : 0)}</text>`;
     });
 
-    // x 轴
-    const stepH = opts.xStep || 4;
+    // x 轴（v1.3.2：窄容器自动降频 6h/8h 刻度，避免 00:00 04:00 … 粘连成黑块）
+    const stepH = opts.xStep || (w < 300 ? 8 : (w < 400 ? 6 : 4));
     for (let hh = 0; hh <= 24; hh += stepH) {
       const i = Math.min(n - 1, Math.round(hh * 4));
       const x = X(i);
       body += `<line x1="${x.toFixed(1)}" y1="${pad.t}" x2="${x.toFixed(1)}" y2="${h - pad.b}" stroke="${T.gridSoft}" stroke-width="1"/>`;
-      body += `<text x="${x.toFixed(1)}" y="${h - 7}" text-anchor="middle" font-size="12.5" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${String(hh).padStart(2, '0')}:00</text>`;
+      body += `<text x="${x.toFixed(1)}" y="${h - 7}" text-anchor="middle" font-size="${compact ? 10.5 : 12.5}" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${String(hh).padStart(2, '0')}:00</text>`;
     }
 
     // 曲线
@@ -185,7 +188,8 @@
     let hi = Math.max(...vals);
     let lo = Math.min(0, ...vals);
     if (opts.max !== undefined) hi = opts.max;
-    const ticks = niceTicks(lo, hi * 1.12, 3);
+    /* v1.3.2：矮容器（展开态 mini 图仅 ~60px 高）减刻度，否则 100/80/60/40/20 叠成一团 */
+    const ticks = niceTicks(lo, hi * 1.12, ph < 64 ? 2 : 3);
     const y0 = ticks[0], y1 = ticks[ticks.length - 1];
     const Y = v => pad.t + (1 - (v - y0) / (y1 - y0)) * ph;
     const bw = (pw / n) * 0.52;
@@ -195,7 +199,7 @@
     ticks.forEach(t => {
       const y = Y(t);
       body += `<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${w - pad.r}" y2="${y.toFixed(1)}" stroke="${t === 0 ? 'rgba(126,163,196,.26)' : T.grid}" stroke-width="1"/>`;
-      body += `<text x="${pad.l - 7}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="12" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${t}</text>`;
+      body += `<text x="${pad.l - (isNarrow ? 5 : 7)}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="${isNarrow ? 10.5 : 12}" font-family="Bahnschrift,Consolas,monospace" fill="${T.axis}">${t}</text>`;
     });
 
     if (opts.threshold !== undefined) {
@@ -277,15 +281,20 @@
     body += `<text x="${cx}" y="${cy + (narrow ? 10 : 16)}" text-anchor="middle" font-size="${narrow ? 9.5 : 12}" fill="${T.axis}" letter-spacing="${narrow ? .5 : 1}">${opts.centerLabel || 'CLUSTERS'}</text>`;
 
     if (narrow) {
-      /* 两列图例（label + value 同行），donut 下方 */
-      const rowH2 = Math.min(16, (h - cy - size / 2 - 6) / Math.ceil(opts.items.length / 2) || 14);
+      /* 两列图例（label + value 同行），donut 下方；v1.3.2：按剩余高度钳制行距与行数，防溢出画布 */
+      const rows = Math.ceil(opts.items.length / 2);
+      const avail = h - (cy + size / 2) - 8;
+      const fs = w < 150 ? 10 : 11.5;
+      const rowH2 = Math.max(10, Math.min(15, avail / rows));
       const ly0 = cy + size / 2 + 12;
+      const maxRow = Math.floor((h - 2 - ly0) / rowH2);
       opts.items.forEach((it, i) => {
         const col = i % 2, row = Math.floor(i / 2);
+        if (row > maxRow) return;
         const x = 8 + col * (w / 2);
         const y = ly0 + row * rowH2;
         body += `<rect x="${x}" y="${y - 4.5}" width="5" height="5" fill="${it.color}" rx="1" opacity=".9"/>`;
-        body += `<text x="${x + 8}" y="${y}" font-size="11.5" fill="#8ea3b7" font-family="HarmonyOS Sans SC,Microsoft YaHei,sans-serif">${it.label} <tspan fill="#c2d5e3" font-family="Bahnschrift,Consolas,monospace">${it.value}</tspan></text>`;
+        body += `<text x="${x + 8}" y="${y}" font-size="${fs}" fill="#8ea3b7" font-family="HarmonyOS Sans SC,Microsoft YaHei,sans-serif">${it.label} <tspan fill="#c2d5e3" font-family="Bahnschrift,Consolas,monospace">${it.value}</tspan></text>`;
       });
     } else {
       const lx = cx + size / 2 + 14;

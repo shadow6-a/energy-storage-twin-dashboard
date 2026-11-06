@@ -647,7 +647,8 @@
       tabs[0].textContent = '功率';
       tabs[1].textContent = 'SOC';
       lg.style.display = 'flex';
-      meta.textContent = '计划 vs 实际';
+      meta.textContent = '对照';
+      meta.title = '主图对照：计划 vs 实际';
 
       const s = DATA.buildSeries(st);
       const factor = strategyFactor();
@@ -714,7 +715,8 @@
       tabs[0].textContent = '簇温度';
       tabs[1].textContent = '簇SOC';
       lg.style.display = 'none';
-      meta.textContent = '舱内 12 簇';
+      meta.textContent = '12 簇';
+      meta.title = '舱内 12 电池簇';
 
       if (tab === 'power') {
         mainTitle.textContent = '舱内簇温度分布';
@@ -757,7 +759,8 @@
     tabs[0].textContent = '单体电压';
     tabs[1].textContent = '单体温度';
     lg.style.display = 'none';
-    meta.textContent = '簇 ' + cl.id + ' · 32 单体';
+    meta.textContent = '簇 ' + cl.id;
+    meta.title = '簇 ' + cl.id + ' · 32 单体';
 
     const cellsT = cl.cells.map(c => c.t);
     if (tab === 'power') {
@@ -1761,6 +1764,17 @@
     });
 
     window.addEventListener('resize', fitScreen);
+    /* v1.3.2：宽度跨断点变化时重绘图表——svg 按生成时的 clientWidth 定坐标，
+       不重绘会在 4K↔1280 拖动窗口后出现 Y 轴刻度贴边 / X 轴时刻粘连 */
+    let lastChartW = 0;
+    let chartRT = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(chartRT);
+      chartRT = setTimeout(() => {
+        const w = Math.round(document.getElementById('chartsPanel').getBoundingClientRect().width);
+        if (w !== lastChartW) { lastChartW = w; renderCharts(); }
+      }, 160);
+    });
 
     ['chartMain', 'chartTemp', 'chartHealth'].forEach(id => {
       const el = document.getElementById(id);

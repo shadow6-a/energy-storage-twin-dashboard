@@ -380,16 +380,18 @@ body.drawer-open .demo-fab{display:none}
   font-size:12.5px;color:var(--txt-2);letter-spacing:.03em;white-space:nowrap;overflow:hidden;
 }
 .chart-title .unit{font-family:var(--font-num);font-size:11px;color:var(--txt-4);margin-left:auto}
-.chart-title .lg{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt-4);letter-spacing:.02em}
+.chart-title .lg{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt-4);letter-spacing:.02em;flex-shrink:0;white-space:nowrap}
 .chart-title .lg i{width:16px;height:0;border-top:1px dashed #6f8ba4;display:block;margin-right:1px}
 .chart-title .lg i.lg-act{border-top:2px solid var(--acc);margin-left:6px}
 .chart-box{position:relative;flex:1;min-height:0}
 .chart-box svg{position:absolute;inset:0;display:block}
 .chart-mini{display:flex;flex-direction:column;min-width:0;min-height:0}
-.chart-tabs{display:flex;gap:3px;margin-left:2px}
+/* v1.3.2：Tab 绝不换行/不被压缩——右栏 320~380px 时「功率」曾被挤成上下两行 */
+.chart-tabs{display:flex;gap:3px;margin-left:2px;flex-shrink:0}
 .chart-tabs button{
   height:26px;padding:0 12px;font-size:12.5px;letter-spacing:.03em;cursor:pointer;
   background:transparent;border:1px solid transparent;border-radius:2px;color:var(--txt-4);
+  white-space:nowrap;flex-shrink:0;
 }
 /* 明细图折叠（信息减负：默认只看主趋势，温度/健康度收进「明细」开关） */
 #chartsPanel.folded .chart-row{display:none}
@@ -398,7 +400,14 @@ body.drawer-open .demo-fab{display:none}
    2.6 档：展开 ≈ 44+26+主图+150，告警保留可见行数不归零 */
 #chartsPanel:not(.folded){flex:2.6 1 0}
 #chartsPanel:not(.folded) .chart-main .chart-box{min-height:96px}
-#btnChartMore{font-size:11.5px}
+#btnChartMore{font-size:11.5px;flex-shrink:0;white-space:nowrap}
+/* v1.3.2：趋势面板头防御——标题/证据/按钮一律不换行，空间不足时只让 meta 省略（大屏右栏 320~460px 均稳） */
+#chartsPanel .panel-hd h3{white-space:nowrap;flex-shrink:0}
+#chartsPanel .panel-hd .meta{flex-shrink:0;white-space:nowrap;max-width:72px;overflow:hidden;text-overflow:ellipsis}
+/* 主图标题可省略，图例保完整（图例是读图刚需，标题在 tooltip/面包屑均有） */
+.chart-title>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-title .unit{flex-shrink:0;white-space:nowrap}
+.chart-title .lg em{font-style:normal}
 /* v1.2.2：演示场景标签收成 Tag——长文案不再抢占顶栏视觉重心（右侧让给系统时间） */
 #scenarioTag{
   font-size:10px;line-height:16px;padding:0 6px;border-radius:2px;
@@ -792,6 +801,11 @@ body:not(.lite) .comm-row:nth-child(4) .bars i:not(.dim){animation-delay:1.2s}
   .st-sub .mw{display:none}
   /* v1.1.2：窄列面板头 meta 直接隐藏（容量/数量在行内与 KPI 均有，截断省略号不如有意为之的隐藏） */
   .panel-hd .meta{display:none}
+  /* v1.3.2：右栏 ≤360px 时趋势区内件降噪——迷你图标题压字号、单位 ℃/簇 让位（悬浮提示仍带单位） */
+  .chart-title{font-size:11.5px;gap:5px}
+  .chart-title .lg{font-size:10px;gap:4px}
+  .chart-mini .chart-title .unit{display:none}
+  .chart-tabs button{padding:0 9px}
 }
 @media (max-width:1100px){
   .app{grid-template-columns:clamp(230px,20vw,250px) minmax(0,1fr) 300px}
@@ -799,6 +813,17 @@ body:not(.lite) .comm-row:nth-child(4) .bars i:not(.dim){animation-delay:1.2s}
   .al-foot span:first-child{display:none}
   .tb-right .tb-kpi:nth-child(2){display:none}
   .topbar .ver{display:none}
+}
+
+/* ============================================================
+   v1.3.2 中等高度：展开趋势时右侧三块总高超限 → 趋势改固定高度
+   （否则 flex 压缩把主图压扁、底部图例被面板下缘裁切）
+   ============================================================ */
+@media (min-height:821px) and (max-height:1100px){
+  #chartsPanel:not(.folded){flex:0 0 auto}
+  #chartsPanel:not(.folded) .chart-main .chart-box{min-height:84px;height:84px}
+  #chartsPanel:not(.folded) .chart-row{flex:0 0 128px}
+  .chart-body{overflow:hidden}
 }
 
 /* ============================================================

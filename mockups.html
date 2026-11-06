@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分层视觉稿 · 储能集群调度大屏</title>
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/components.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.0">
-<link rel="stylesheet" href="assets/css/docs.css?v=1.3.0">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/components.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/docs.css?v=1.3.2">
 <style>
   .fig{position:relative;border:1px solid var(--line-1);border-radius:3px;overflow:hidden;background:#04070c}
   .fig img{display:block;width:100%;height:auto}
@@ -67,9 +67,12 @@
       <h1>静态分层稿 · 动效参考 · 交互热区</h1>
       <p>
         以下各稿为 1920×1080 基准的 2× 高清导出（3840×2160 PNG，位于 <span class="kbd">assets/mockups/</span>），
-        与线上页面逐像素一致。每张稿可切换三类标注：<b style="color:#9fb6c8">静态层</b>（布局与信息）；
-        <b style="color:#8fd9e4">动效层</b>（允许动的元素）；<b style="color:#f2a89c">交互热区</b>（可点击区域）。
-        动效仅两类：告警脉冲环与链路流向，无粒子 / 泛光 / 其他光效。
+        与线上页面逐像素一致。每张稿可切换三类标注：<b style="color:#9fb6c8">静态层</b>（布局与信息）；
+
+        <b style="color:#8fd9e4">动效层</b>（允许动的元素）；<b style="color:#f2a89c">交互热区</b>（可点击区域）。
+
+        动效仅两类：告警脉冲环与链路流向，无粒子 / 泛光 / 其他光效。
+
       </p>
     </div>
 
@@ -79,15 +82,18 @@
       <div class="grid-3">
         <div class="card">
           <div class="legend-strip"><span><i style="border:1px dashed rgba(126,163,196,.55);background:rgba(126,163,196,.08)"></i>静态层 STATIC</span></div>
-          <p class="desc" style="margin:8px 0 0">面板骨架、文本、图表坐标系、3D 场景结构。任何主题下不动。</p>
+          <p class="desc" style="margin:8px 0 0">面板骨架、文本、图表坐标系、3D 场景结构。任何主题下不动。
+</p>
         </div>
         <div class="card">
           <div class="legend-strip"><span><i style="border:1px dashed rgba(63,182,201,.6);background:rgba(63,182,201,.08)"></i>动效层 MOTION</span></div>
-          <p class="desc" style="margin:8px 0 0">仅两类：告警脉冲环（4 级节奏）、链路流向流光（随策略变速）。数据刷新类淡入淡出 &lt;300ms。</p>
+          <p class="desc" style="margin:8px 0 0">仅两类：告警脉冲环（4 级节奏）、链路流向流光（随策略变速）。数据刷新类淡入淡出 &lt;300ms。
+</p>
         </div>
         <div class="card">
           <div class="legend-strip"><span><i style="border:1px dashed rgba(223,82,63,.6);background:rgba(223,82,63,.08)"></i>交互热区 HOTSPOT</span></div>
-          <p class="desc" style="margin:8px 0 0">可点击区域：信标、舱体、电池簇、告警行、策略分段、图层开关、抽屉触发。</p>
+          <p class="desc" style="margin:8px 0 0">可点击区域：信标、舱体、电池簇、告警行、策略分段、图层开关、抽屉触发。
+</p>
         </div>
       </div>
     </section>
@@ -102,8 +108,10 @@
     <section class="sec" id="m6">
       <div class="sec-hd"><span class="no">06</span><h2>异常态三稿</h2><span class="tip">EDGE STATES · 非理想性</span></div>
       <p class="desc">
-        证明异常工况已纳入设计：全站通信中断（灰阶降级）、多告警并发 + 已抑制条目（含抑制冲突）、电池簇严重超温（43.8℃/二级温控 + 烟感预动作）。
-        三种状态均可在线上通过 <span class="kbd">index.html?anomaly=offline / multi / overtemp</span> 复现。
+        证明异常工况已纳入设计：全站通信中断（灰阶降级）、多告警并发 + 已抑制条目（含抑制冲突）、电池簇严重超温（43.8℃/二级温控 + 烟感预动作）。
+
+        三种状态均可在线上通过 <span class="kbd">index.html?anomaly=offline / multi / overtemp</span> 复现。
+
       </p>
       <div class="mock-grid" id="mockEdge"></div>
     </section>
@@ -166,16 +174,22 @@
 │  └─ grid 网格纹理 3%
 ├─ 01 TOPBAR / 顶部通栏 1920×56 【静态】 
 │  ├─ title-居中主标题 
-│  ├─ kpi-左（总装机/版本/文档链接）
-│  ├─ kpi-右（并网功率/通信在线/时钟）
-│  └─ scenario-tag 异常态演示标签
+│  ├─ kpi-左（总装机/版本/文档链接）
+
+│  ├─ kpi-右（并网功率/通信在线/时钟）
+
+│  └─ scenario-tag 异常态演示标签
+
 ├─ 02 LEFT / 左栏 296×872 【静态】 
-│  ├─ panel-stations 电站列表（32%）
+│  ├─ panel-stations 电站列表（32%）
+
 │  │  ├─ filters chips ×3 【热区】 
 │  │  └─ rows ×8（dot/name/soc/徽标）【热区】 
-│  └─ panel-alerts 告警台账（28%）
+│  └─ panel-alerts 告警台账（28%）
+
 │     ├─ filters chips ×5 【热区】 
-│     └─ cards ×N（lv-tag/time/status/text）
+│     └─ cards ×N（lv-tag/time/status/text）
+
 │        └─ actions 确认/闭环/定位 【热区】 
 ├─ 03 CENTER / 主视区 1164×872
 │  ├─ canvas-3d 孪生视口 【静态】 
@@ -187,27 +201,35 @@
 │  ├─ HUD-工具（2D/复位/图层开关）【热区】 
 │  ├─ HUD-图例（左下）
 │  ├─ card-站点浮卡 【热区】 
-│  └─ veil 转场遮罩 【动效·280ms】
+│  └─ veil 转场遮罩 【动效·280ms】
+
 ├─ 04 RIGHT / 右栏 420×872 【静态】 
-│  ├─ metrics 指标卡 2×2+wide（随层级联动）
-│  └─ trends 趋势区（tab 功率/SOC 【热区】
-│     ├─ chart-计划vs实际（now 竖线）
+│  ├─ metrics 指标卡 2×2+wide（随层级联动）
+
+│  └─ trends 趋势区（tab 功率/SOC 【热区】
+
+│     ├─ chart-计划vs实际（now 竖线）
+
 │     ├─ chart-温度/压差 柱状
 │     └─ chart-健康度环形</pre>
-        <pre class="tree">│  └─ chart-健康度环形
+        <pre class="tree">│  └─ chart-健康度环形
+
 ├─ 05 BOTTOM / 底部辅助栏 1920×112 【静态】 
 │  ├─ strategy 策略分段 ×3 【热区】 
 │  ├─ comm 通信链路 ×4
-│  ├─ online 设备在线率
+│  ├─ online 设备在线率
+
 │  └─ ai-block AI 摘要 + 展开 【热区】 
 ├─ 06 OVERLAY / 浮层
 │  ├─ toast 队列（底部居中）
-│  ├─ tooltip 3D 悬浮卡
+│  ├─ tooltip 3D 悬浮卡
+
 │  └─ veil 转场遮罩 280ms
 ├─ 07 DRAWER / AI 抽屉 466px 【热区】 
 │  ├─ scrim 遮罩
 │  ├─ 根因推荐（置信度条）
-│  ├─ 收益预估（构成条）
+│  ├─ 收益预估（构成条）
+
 │  └─ 调度建议（采纳按钮）【热区】 
 └─ 08 MOTION / 动效规范
    ├─ pulse-ring 告警脉冲（4 级节奏）
