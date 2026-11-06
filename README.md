@@ -1,6 +1,6 @@
 # 储能电站集群 · 数字孪生调度大屏
 
-![tests](https://img.shields.io/badge/tests-61%2F61%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.3--prototype-orange)
+![tests](https://img.shields.io/badge/tests-61%2F61%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.3.1--prototype-orange)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（零三方库），Playwright + PowerShell 回归门禁全程护栏。
 
@@ -18,7 +18,7 @@
 ## 免责边界
 
 - 当前版本**仅提供深色主题**（工业值守标准）；浅色报表主题已在设计系统 tokens 中预留扩展位（色彩令牌集中管理），可依据后续需求立项开发
-- **已知问题**：`components.html` / `flow.html` / `mockups.html` / `story.html` 四个子页中文仍为 v1.2.2 编码事故遗留乱码（结构与样式完好）；`mockups.html` 另有内联脚本被连带破坏（乱码吃掉字符串闭合引号 → `Invalid or unexpected token`，分层标注不渲染）。已探测出 CP936 逆转换可恢复约 99% 文案（剩余约 200 字符/页为编码时 best-fit 丢失，需人工补字），恢复方案见 CHANGELOG v1.3.0「下一步」
+- **v1.2.2 编码事故已结案（v1.3.1）**：`components` / `flow` / `mockups` / `story` 四页中文已全量恢复（778 个缺口逐字判读），`mockups.html` 分层标注渲染正常；恢复方法与会话判定表留档于 `tests/tools/mojibake/`，可复现
 - 完整边界声明见 `story.html` §05（版本定位 / 权限 / 审计 / 合规等 7 项）
 
 ## 核心差异化：可以被测试的大屏
@@ -60,6 +60,7 @@ python -m http.server 8796   # 根目录起静态服务
 
 ## 版本里程碑
 
+- **v1.3.1** · 四个文档页乱码全量恢复（字节级逆向 + 778 缺口判读），`mockups.html` 内联脚本修复，恢复工具链留档
 - **v1.3** · 告警批量处置（多选 / 批量确认 / 批量闭环）、Ctrl+Z 撤销、操作审计留痕（抽屉 + 200 条本地留存 + CSV）、抽屉遮罩统一（修 FAB 层级）
 - **v1.2** · 标签屏幕空间碰撞避让（滞后阈值 + 引线 + 优先级）、驾驶舱模式、CSS 缓存治理（link 版本参数）
 - **v1.1.x** · 视觉走查三轮：顶栏重构 / 黄金三角信息架构 / 顶栏 KPI 分隔线 / 告警行紧凑制 / SOC 分色进度条 / <13px 清扫 / 快捷键
