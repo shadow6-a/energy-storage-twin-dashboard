@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鍒嗗眰瑙嗚绋?路 鍌ㄨ兘闆嗙兢璋冨害澶у睆</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.2.2">
+<link rel="stylesheet" href="assets/css/components.css?v=1.2.2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.2.2">
+<link rel="stylesheet" href="assets/css/docs.css?v=1.2.2">
+<style>
+  .fig{position:relative;border:1px solid var(--line-1);border-radius:3px;overflow:hidden;background:#04070c}
+  .fig img{display:block;width:100%;height:auto}
+  .fig-tools{position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:5}
+  .fig-tools button{
+    font-size:10px;letter-spacing:.08em;padding:4px 10px;cursor:pointer;
+    background:rgba(8,15,23,.85);color:var(--txt-3);border:1px solid var(--line-2);border-radius:2px;
+  }
+  .fig-tools button.on{color:#a9e5ee;border-color:rgba(63,182,201,.5)}
+  .fig-cap{display:flex;gap:14px;align-items:baseline;margin:10px 0 4px}
+  .fig-cap b{font-size:13px;color:#d8e6f2;letter-spacing:.08em}
+  .fig-cap span{font-size:10.5px;color:var(--txt-4);letter-spacing:.06em}
+  .legend-strip{display:flex;gap:14px;margin:8px 0 6px;flex-wrap:wrap}
+  .legend-strip span{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--txt-3)}
+  .legend-strip i{width:16px;height:10px;display:block;border-radius:2px}
+  .sec{margin-bottom:48px}
+  .mock-grid{display:grid;grid-template-columns:1fr;gap:26px}
+  pre.tree{
+    font-family:Consolas,monospace;font-size:10.5px;line-height:1.75;color:#8fa5b8;
+    background:rgba(8,15,23,.7);border:1px solid var(--line-1);border-radius:3px;
+    padding:14px 18px;overflow-x:auto;white-space:pre;
+  }
+  pre.tree b{color:#cfe0ee;font-weight:400}
+  .motion-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .motion-grid .card{min-height:150px}
+  .motion-grid label{display:block;font-size:10px;color:var(--txt-4);letter-spacing:.1em;margin-top:8px}
+  .spec-inline{font-size:10px;color:var(--txt-4);line-height:1.7;margin-top:6px}
+  .spec-inline b{color:#cfe0ee;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="docs">
+  <nav class="docs-nav">
+    <div class="brand">
+      <b>鍒嗗眰瑙嗚绋?/b>
+      <span>LAYERED MOCKUPS 路 V0.9.1</span>
+    </div>
+    <div class="links" id="navLinks">
+      <a href="#m1" class="on"><i>01</i>鍒嗗眰璇存槑涓庡浘渚?/a>
+      <a href="#m2"><i>02</i>涓诲ぇ灞忓畬鏁寸 L0</a>
+      <a href="#m3"><i>03</i>鍗曠數绔欒鍥?L1</a>
+      <a href="#m4"><i>04</i>鐢垫睜鑸辩皣瑙嗗浘 L2</a>
+      <a href="#m5"><i>05</i>鐢垫睜绨?BMS L3</a>
+      <a href="#m6"><i>06</i>寮傚父鎬佷笁绋?/a>
+      <a href="#m7"><i>07</i>鍔ㄦ晥鍙傝€冿紙鑴夊啿/娴佸悜锛?/a>
+      <a href="#m8"><i>08</i>Figma 鍥惧眰缁撴瀯</a>
+    </div>
+    <a class="back" href="index.html">鈥?杩斿洖璋冨害澶у睆</a>
+  </nav>
+
+  <main class="docs-main">
+
+    <div class="doc-hero">
+      <div class="crumbs-doc">鍌ㄨ兘鐢电珯闆嗙兢鏁板瓧瀛敓璋冨害澶у睆 <span>/</span> <b>鍒嗗眰瑙嗚绋?/b></div>
+      <h1>闈欐€佸垎灞傜 路 鍔ㄦ晥鍙傝€?路 浜や簰鐑尯</h1>
+      <p>
+        浠ヤ笅鍚勭涓?1920脳1080 鍩哄噯鐨?2脳 楂樻竻瀵煎嚭锛?840脳2160 PNG锛屼綅浜?<span class="kbd">assets/mockups/</span>锛夛紝
+        涓庣嚎涓婇〉闈㈤€愬儚绱犱竴鑷淬€傛瘡寮犵鍙垏鎹笁绫绘爣娉細<b style="color:#9fb6c8">闈欐€佸眰</b>锛堝竷灞€涓庝俊鎭級銆?
+        <b style="color:#8fd9e4">鍔ㄦ晥灞?/b>锛堝厑璁稿姩鐨勫厓绱狅級銆?b style="color:#f2a89c">浜や簰鐑尯</b>锛堝彲鐐瑰嚮鍖哄煙锛夈€?
+        鍔ㄦ晥浠呬袱绫伙細鍛婅鑴夊啿鐜笌閾捐矾娴佸悜锛屾棤绮掑瓙 / 娉涘厜 / 鍏朵粬鍏夋晥銆?
+      </p>
+    </div>
+
+    <!-- 01 鍥句緥 -->
+    <section class="sec" id="m1">
+      <div class="sec-hd"><span class="no">01</span><h2>鍒嗗眰璇存槑涓庡浘渚?/h2><span class="tip">LAYERS</span></div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="legend-strip"><span><i style="border:1px dashed rgba(126,163,196,.55);background:rgba(126,163,196,.08)"></i>闈欐€佸眰 STATIC</span></div>
+          <p class="desc" style="margin:8px 0 0">闈㈡澘楠ㄦ灦銆佹枃鏈€佸浘琛ㄥ潗鏍囩郴銆?D 鍦烘櫙缁撴瀯銆備换浣曚富棰樹笅涓嶅姩銆?/p>
+        </div>
+        <div class="card">
+          <div class="legend-strip"><span><i style="border:1px dashed rgba(63,182,201,.6);background:rgba(63,182,201,.08)"></i>鍔ㄦ晥灞?MOTION</span></div>
+          <p class="desc" style="margin:8px 0 0">浠呬袱绫伙細鍛婅鑴夊啿鐜紙4 绾ц妭濂忥級銆侀摼璺祦鍚戞祦鍏夛紙闅忕瓥鐣ュ彉閫燂級銆傛暟鎹埛鏂扮被娣″叆娣″嚭 &lt;300ms銆?/p>
+        </div>
+        <div class="card">
+          <div class="legend-strip"><span><i style="border:1px dashed rgba(223,82,63,.6);background:rgba(223,82,63,.08)"></i>浜や簰鐑尯 HOTSPOT</span></div>
+          <p class="desc" style="margin:8px 0 0">鍙偣鍑诲尯鍩燂細淇℃爣銆佽埍浣撱€佺數姹犵皣銆佸憡璀﹁銆佺瓥鐣ュ垎娈点€佸浘灞傚紑鍏炽€佹娊灞夎Е鍙戙€?/p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02-05 涓昏鍥?-->
+    <section class="sec" id="m2">
+      <div class="sec-hd"><span class="no">02</span><h2>涓诲ぇ灞忓畬鏁寸 路 L0 闆嗙兢鎬昏</h2><span class="tip">1920脳1080 @2x</span></div>
+      <div class="mock-grid" id="mockList"></div>
+    </section>
+
+    <!-- 06 寮傚父鎬?-->
+    <section class="sec" id="m6">
+      <div class="sec-hd"><span class="no">06</span><h2>寮傚父鎬佷笁绋?/h2><span class="tip">EDGE STATES 路 闈炵悊鎯虫€?/span></div>
+      <p class="desc">
+        璇佹槑寮傚父宸ュ喌宸茬撼鍏ヨ璁★細鍏ㄧ珯閫氫俊涓柇锛堢伆闃堕檷绾э級銆佸鍛婅骞跺彂 + 宸叉姂鍒舵潯鐩紙鍚姂鍒跺啿绐侊級銆佺數姹犵皣涓ラ噸瓒呮俯锛?3.8鈩?浜岀骇娓╂帶 + 鐑熸劅棰勫姩浣滐級銆?
+        涓夌鐘舵€佸潎鍙湪绾夸笂閫氳繃 <span class="kbd">index.html?anomaly=offline / multi / overtemp</span> 澶嶇幇銆?
+      </p>
+      <div class="mock-grid" id="mockEdge"></div>
+    </section>
+
+    <!-- 07 鍔ㄦ晥鍙傝€?-->
+    <section class="sec" id="m7">
+      <div class="sec-hd"><span class="no">07</span><h2>鍔ㄦ晥鍙傝€?路 鑴夊啿鑺傚涓庢祦鍚戦€熷害</h2><span class="tip">MOTION SPEC 路 浠呬袱绫诲姩鏁?/span></div>
+      <p class="desc">鍛婅鑴夊啿鐜細妞渾璐村湴锛屽悜澶栨墿鏁ｅ苟娣″嚭锛岀瓑绾ц秺楂樿妭濂忚秺蹇€佽秺閱掔洰锛涙彁绀虹骇涓洪潤鎬佸懠鍚稿厜锛屼笉鎵╂暎銆傞摼璺祦鍚戯細娴佸厜娈垫部铏氱嚎绉诲姩锛岄€熷害涓庣瓥鐣ュ悶鍚愮郴鏁版垚姝ｆ瘮锛岀绾块潤姝€?/p>
+      <div class="motion-grid">
+        <div class="card">
+          <div class="pulse-stage"><span class="base"><span class="ring" style="--dur:.9s;color:#E0523F"></span><span class="ring" style="--dur:.9s;--delay:.45s;color:#E0523F"></span></span></div>
+          <label>绱ф€?CRIT 路 0.9s/鍦?鍙岀幆</label>
+          <div class="spec-inline"><b>scale 0.55鈫?.7</b> 路 opacity .95鈫?<br>鍙岀幆鐩镐綅宸?0.45s 路 璐村湴妞渾</div>
+        </div>
+        <div class="card">
+          <div class="pulse-stage"><span class="base"><span class="ring" style="--dur:1.4s;color:#DF8A2E"></span></span></div>
+          <label>閲嶈 HIGH 路 1.4s/鍦?鍗曠幆</label>
+          <div class="spec-inline"><b>scale 0.55鈫?.7</b> 路 opacity .9鈫?<br>鍗曠幆杩炵画 路 鏃犲０鏁?/div>
+        </div>
+        <div class="card">
+          <div class="pulse-stage"><span class="base"><span class="ring" style="--dur:2.4s;color:#D8B24A"></span></span></div>
+          <label>涓€鑸?WARN 路 2.4s/鍦?寮卞寲</label>
+          <div class="spec-inline"><b>scale 0.55鈫?.2</b> 路 opacity .7鈫?<br>浣庨寮卞寲锛屼笉鎶㈣瑙夌劍鐐?/div>
+        </div>
+        <div class="card">
+          <div class="pulse-stage"><span class="base"><span class="ring" style="--dur:3.6s;color:#5E8FBB;animation-name:none;opacity:.28"></span></span></div>
+          <label>鎻愮ず INFO 路 闈欐€佸懠鍚?/label>
+          <div class="spec-inline"><b>opacity .15鈫?3</b> 鍛煎惛 3.6s<br>涓嶆墿鏁?路 涓嶅弬涓庣疆椤堕€昏緫</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <table class="spec-table" style="max-width:560px">
+          <tr><th>绛栫暐 / 鐘舵€?/th><th>娴侀€燂紙娴佸厜鍛ㄦ湡锛?/th><th>鏂瑰悜</th></tr>
+          <tr><td>鍓婂嘲濉胺 路 鏅氬嘲鏀剧數</td><td class="num">2.0s锛堢郴鏁?1.0锛?/td><td>绔?鈫?姹囬泦鐐癸紙鐞ョ弨娴佸悜锛?/td></tr>
+          <tr><td>璋冮鍝嶅簲</td><td class="num">3.6s锛堢郴鏁?0.55锛?/td><td>鍙屽悜灏忓箙</td></tr>
+          <tr><td>鑷富澶囩敤</td><td class="num">7.0s锛堢郴鏁?0.28锛?/td><td>寰祦</td></tr>
+          <tr><td>閫氫俊涓柇</td><td>闈欐锛堟祦鍏夐殣钘忥級</td><td>鈥?/td></tr>
+        </table>
+        <div style="max-width:560px">
+          <div class="flow-wire"><i style="--dur:2s"></i><i style="--dur:2s;--delay:.6s"></i><i style="--dur:2s;--delay:1.2s"></i></div>
+          <div class="spec-inline" style="margin:0 0 10px">鍓婂嘲濉胺 路 2.0s 鍛ㄦ湡</div>
+          <div class="flow-wire"><i style="--dur:3.6s"></i><i style="--dur:3.6s;--delay:1.2s"></i></div>
+          <div class="spec-inline" style="margin:0 0 10px">璋冮鍝嶅簲 路 3.6s 鍛ㄦ湡</div>
+          <div class="flow-wire"><i style="--dur:7s"></i></div>
+          <div class="spec-inline" style="margin:0 0 10px">鑷富澶囩敤 路 7.0s 鍛ㄦ湡</div>
+          <div class="flow-wire idle"><i></i></div>
+          <div class="spec-inline" style="margin:0">閫氫俊涓柇 路 娴佸厜闅愯棌锛堥潤姝㈢伆鐐瑰崰浣嶏級</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 Figma 缁撴瀯 -->
+    <section class="sec" id="m8">
+      <div class="sec-hd"><span class="no">08</span><h2>Figma 鍥惧眰缁撴瀯锛堢矘璐村彲鐢級</h2><span class="tip">FIGMA STRUCTURE</span></div>
+      <div class="grid-2">
+        <pre class="tree"><b>鍌ㄨ兘璋冨害澶у睆 1920脳1080</b>
+鈹溾攢 00 BG / 鑳屾櫙
+鈹? 鈹溾攢 bg-gradient 娣辫摑寰勫悜
+鈹? 鈹斺攢 grid 缃戞牸绾圭悊 3%
+鈹溾攢 01 TOPBAR / 椤堕儴閫氭爮 1920脳56 銆愰潤鎬併€?
+鈹? 鈹溾攢 title-灞呬腑涓绘爣棰?
+鈹? 鈹溾攢 kpi-宸︼紙鎬昏鏈?鐗堟湰/鏂囨。閾炬帴锛?
+鈹? 鈹溾攢 kpi-鍙筹紙骞剁綉鍔熺巼/閫氫俊鍦ㄧ嚎/鏃堕挓锛?
+鈹? 鈹斺攢 scenario-tag 寮傚父鎬佹紨绀烘爣绛?
+鈹溾攢 02 LEFT / 宸︽爮 296脳872 銆愰潤鎬併€?
+鈹? 鈹溾攢 panel-stations 鐢电珯鍒楄〃锛?2%锛?
+鈹? 鈹? 鈹溾攢 filters chips 脳3 銆愮儹鍖恒€?
+鈹? 鈹? 鈹斺攢 rows 脳8锛坉ot/name/soc/寰芥爣锛夈€愮儹鍖恒€?
+鈹? 鈹斺攢 panel-alerts 鍛婅鍙拌处锛?8%锛?
+鈹?    鈹溾攢 filters chips 脳5 銆愮儹鍖恒€?
+鈹?    鈹斺攢 cards 脳N锛坙v-tag/time/status/text锛?
+鈹?       鈹斺攢 actions 纭/闂幆/瀹氫綅 銆愮儹鍖恒€?
+鈹溾攢 03 CENTER / 涓昏鍖?1164脳872
+鈹? 鈹溾攢 canvas-3d 瀛敓瑙嗗彛 銆愰潤鎬併€?
+鈹? 鈹? 鈹溾攢 L0 绔欑偣淇℃爣 脳8銆愬姩鏁埪疯剦鍐诧綔鐑尯銆?
+鈹? 鈹? 鈹溾攢 L0 閾捐矾娴佸悜 銆愬姩鏁埪锋祦鍏夈€?
+鈹? 鈹? 鈹溾攢 L1 鑸变綋/PCS/涓诲彉 銆愮儹鍖恒€?
+鈹? 鈹? 鈹斺攢 L2 鐢垫睜绨?脳12 銆愮儹鍖恒€?
+鈹? 鈹溾攢 HUD-闈㈠寘灞?銆愮儹鍖恒€?
+鈹? 鈹溾攢 HUD-宸ュ叿锛?D/澶嶄綅/鍥惧眰寮€鍏筹級銆愮儹鍖恒€?
+鈹? 鈹溾攢 HUD-鍥句緥锛堝乏涓嬶級
+鈹? 鈹溾攢 card-绔欑偣娴崱 銆愮儹鍖恒€?
+鈹? 鈹斺攢 veil 杞満閬僵 銆愬姩鏁埪?80ms銆?
+鈹溾攢 04 RIGHT / 鍙虫爮 420脳872 銆愰潤鎬併€?
+鈹? 鈹溾攢 metrics 鎸囨爣鍗?2脳2+wide锛堥殢灞傜骇鑱斿姩锛?
+鈹? 鈹斺攢 trends 瓒嬪娍鍖猴紙tab 鍔熺巼/SOC 銆愮儹鍖恒€?
+鈹?    鈹溾攢 chart-璁″垝vs瀹為檯锛坣ow 绔栫嚎锛?
+鈹?    鈹溾攢 chart-娓╁害/鍘嬪樊 鏌辩姸
+鈹?    鈹斺攢 chart-鍋ュ悍搴︾幆褰?/pre>
+        <pre class="tree">鈹? 鈹斺攢 chart-鍋ュ悍搴︾幆褰?
+鈹溾攢 05 BOTTOM / 搴曢儴杈呭姪鏍?1920脳112 銆愰潤鎬併€?
+鈹? 鈹溾攢 strategy 绛栫暐鍒嗘 脳3 銆愮儹鍖恒€?
+鈹? 鈹溾攢 comm 閫氫俊閾捐矾 脳4
+鈹? 鈹溾攢 online 璁惧鍦ㄧ嚎鐜?
+鈹? 鈹斺攢 ai-block AI 鎽樿 + 灞曞紑 銆愮儹鍖恒€?
+鈹溾攢 06 OVERLAY / 娴眰
+鈹? 鈹溾攢 toast 闃熷垪锛堝簳閮ㄥ眳涓級
+鈹? 鈹溾攢 tooltip 3D 鎮诞鍗?
+鈹? 鈹斺攢 veil 杞満閬僵 280ms
+鈹溾攢 07 DRAWER / AI 鎶藉眽 466px 銆愮儹鍖恒€?
+鈹? 鈹溾攢 scrim 閬僵
+鈹? 鈹溾攢 鏍瑰洜鎺ㄨ崘锛堢疆淇″害鏉★級
+鈹? 鈹溾攢 鏀剁泭棰勪及锛堟瀯鎴愭潯锛?
+鈹? 鈹斺攢 璋冨害寤鸿锛堥噰绾虫寜閽級銆愮儹鍖恒€?
+鈹斺攢 08 MOTION / 鍔ㄦ晥瑙勮寖
+   鈹溾攢 pulse-ring 鍛婅鑴夊啿锛? 绾ц妭濂忥級
+   鈹? crit .9s脳2 / high 1.4s / warn 2.4s / info 鍛煎惛
+   鈹溾攢 flow-dash 閾捐矾娴佸悜锛堢瓥鐣ュ彉閫燂級
+   鈹? 宄拌胺 2.0s / 璋冮 3.6s / 澶囩敤 7.0s / 绂荤嚎闈欐
+   鈹斺攢 transition 杞満/娣″叆娣″嚭 鈮?00ms</pre>
+      </div>
+      <p class="desc" style="margin-top:10px">瀵煎嚭绾﹀畾锛欶igma 涓寜 00鈫?8 鑷笂鑰屼笅寤虹粍锛涘姩鏁堝眰涓庣儹鍖哄眰鍗曠嫭缃《骞跺懡鍚?<span class="kbd">MOTION/*</span>銆?span class="kbd">HOTSPOT/*</span>锛屼氦浠樺紑鍙戞椂闅愯棌銆傛墍鏈夎壊鍊间互 <span class="kbd">components.html</span> 鑹叉澘浠ょ墝涓哄噯銆?/p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* 鍒嗗眰鏍囨敞鏁版嵁锛堢櫨鍒嗘瘮瀹氫綅锛歭eft/top/width/height锛?*/
+const MOCKS = [
+  {
+    id: '01-overview', img: 'assets/mockups/01-overview.png', cap: 'L0 闆嗙兢鎬昏', sub: '8 绔欑偣浣?路 姹囬泦鐐?路 鍔熺巼娴佸悜 路 鍛婅鑴夊啿', host: 'mockList',
+    layers: [
+      ['static', '宸︽爮 路 鐢电珯鍒楄〃', 0.5, 8, 15, 40],
+      ['static', '宸︽爮 路 鍛婅鍙拌处', 0.5, 50, 15, 38],
+      ['static', '鍙虫爮 路 鎸囨爣鍗?, 78, 8, 21.2, 26],
+      ['static', '鍙虫爮 路 瓒嬪娍鍖?, 78, 36.5, 21.2, 51],
+      ['static', '搴曢儴杈呭姪鏍?, 0.5, 90, 99, 8.6],
+      ['fx', '鍛婅鑴夊啿锛堥敗灞?濡備笢锛?, 44, 26, 26, 30],
+      ['fx', '閾捐矾娴佸悜娴佸厜', 22, 44, 55, 22],
+      ['hot', '淇℃爣鐑尯 脳9', 22, 22, 56, 42],
+      ['hot', '鍥惧眰寮€鍏?/ 2D / 澶嶄綅', 64, 6.6, 13.5, 4.5],
+      ['hot', '绛栫暐鍒嗘 脳3', 0.6, 90.5, 15, 7],
+      ['hot', 'AI 灞曞紑', 72, 90.5, 13, 7]
+    ]
+  },
+  {
+    id: '02-station', img: 'assets/mockups/02-station.png', cap: 'L1 鍗曠數绔欏唴閮ㄥ鐢?, sub: '鐢垫睜鑸?脳6 路 PCS 路 涓诲彉 路 绔欐帶妤?, host: 'mockList',
+    layers: [
+      ['static', '鑸变綋闃靛垪锛堝乏鍒楋級', 26, 30, 22, 34],
+      ['static', '鑸变綋闃靛垪锛堝彸鍒楋級', 48, 40, 24, 34],
+      ['static', 'PCS / 涓诲彉锛堝墠鍖猴級', 40, 62, 34, 14],
+      ['static', '绔欐帶妤?, 28, 22, 10, 10],
+      ['fx', '鐩存祦閾捐矾娴佸悜', 30, 46, 40, 18],
+      ['hot', '鑸变綋鐑尯 脳6', 26, 28, 46, 48],
+      ['hot', '娴崱銆岃繘鍏ョ數姹犺埍銆?, 62, 12, 14, 24],
+      ['hot', '闈㈠寘灞戝洖閫€', 15.5, 6.8, 16, 4]
+    ]
+  },
+  {
+    id: '03-cabin', img: 'assets/mockups/03-cabin.png', cap: 'L2 鐢垫睜鑸辩皣瑙嗗浘', sub: '12 鐢垫睜绨?路 姹囨祦姣嶆帓 路 閫氶亾', host: 'mockList',
+    layers: [
+      ['static', '绨囬樀鍒楋紙杩戞帓锛?, 30, 44, 40, 26],
+      ['static', '绨囬樀鍒楋紙杩滄帓锛?, 30, 24, 40, 22],
+      ['static', '姹囨祦姣嶆帓', 30, 26, 40, 6],
+      ['fx', '姣嶆帓寰祦鍔?, 30, 26, 40, 5],
+      ['hot', '鐢垫睜绨囩儹鍖?脳12', 30, 22, 40, 50],
+      ['hot', '娴崱銆屾煡鐪嬬數姹犵皣銆?, 62, 12, 14, 26]
+    ]
+  },
+  {
+    id: '04-cluster', img: 'assets/mockups/04-cluster.png', cap: 'L3 鐢垫睜绨?BMS', sub: '閫変腑鎬佹弿杈?路 鍗曚綋鐢靛帇/娓╁害鏇茬嚎 路 涓€鑷存€х幆褰?, host: 'mockList',
+    layers: [
+      ['static', '閫変腑绨囷紙闈掕摑鎻忚竟 + 鍦伴潰妞渾锛?, 40, 40, 18, 30],
+      ['static', '鍙充晶 路 鍗曚綋鐢靛帇/娓╁害鏇茬嚎', 78, 36.5, 21.2, 51],
+      ['fx', '閫変腑鍛煎惛妞渾', 40, 58, 18, 8],
+      ['hot', '绨囦綋鐑尯 脳12', 30, 22, 40, 50],
+      ['hot', '娴崱銆岀敓鎴愬伐鍗?/ 杩斿洖銆?, 62, 12, 14, 30]
+    ]
+  },
+  {
+    id: '05-offline', img: 'assets/mockups/05-offline.png', cap: '寮傚父鎬?A 路 鍏ㄧ珯閫氫俊涓柇', sub: '0/8 路 鐏伴樁淇℃爣 路 绂荤嚎蹇収鏍囨敞 路 绱ф€ラ€氫俊鍛婅', host: 'mockEdge', edge: true,
+    layers: [
+      ['static', '鐏伴樁淇℃爣锛堟棤鑴夊啿鏃犺鏍囷級', 22, 22, 56, 42],
+      ['static', '椤舵爮 0/8 路 婕旂ず鏍囩', 70, 0, 30, 5.4],
+      ['fx', '閾捐矾闈欐锛堟祦鍏夐殣钘忥級', 22, 44, 55, 22],
+      ['hot', '淇℃爣鐑尯锛堝揩鐓у彲鐪嬶級', 22, 22, 56, 42]
+    ]
+  },
+  {
+    id: '06-multi', img: 'assets/mockups/06-multi.png', cap: '寮傚父鎬?B 路 澶氬憡璀﹀苟鍙?+ 鎶戝埗鍐茬獊', sub: '澶氱珯绱ф€ョ疆椤?路 宸叉姂鍒剁伆闃舵潯鐩?路 璁℃暟鑱斿姩', host: 'mockEdge', edge: true,
+    layers: [
+      ['static', '鍙拌处澶氱骇缃《鍫嗗彔', 0.5, 50, 15, 38],
+      ['static', '宸叉姂鍒剁伆闃舵潯鐩?, 0.5, 78, 15, 10],
+      ['fx', '澶氫俊鏍囧悓鏃惰剦鍐?, 30, 22, 50, 44],
+      ['hot', '纭/闂幆鎸夐挳', 4, 54, 11, 6],
+      ['hot', '鐢电珯琛岃鏍?, 0.5, 8, 15, 40]
+    ]
+  },
+  {
+    id: '07-overtemp', img: 'assets/mockups/07-overtemp.png', cap: '寮傚父鎬?C 路 鐢垫睜绨囦弗閲嶈秴娓?, sub: '43.8鈩?浜岀骇娓╂帶 路 鐑熸劅棰勫姩浣?路 娑插喎闄嶆晥', host: 'mockEdge', edge: true,
+    layers: [
+      ['static', '绱ф€ュ弻鏉＄洰缃《', 0.5, 50, 15, 24],
+      ['fx', '閿″北淇℃爣楂樺己鑴夊啿', 44, 26, 14, 18],
+      ['hot', '鍛婅銆屽畾浣嶃€嶁啋 鑷姩涓嬮捇', 4, 54, 11, 6],
+      ['hot', '娓╁害鍥捐〃鐑尯', 78, 36.5, 21.2, 20]
+    ]
+  }
+];
+
+const CLS = { static: 'static-layer', fx: 'fx-layer', hot: 'hotspot' };
+const TAG = { static: '闈?, fx: '鍔?, hot: '鐑? };
+const HOSTS = {};
+MOCKS.forEach(m => {
+  const fig = document.createElement('div');
+  fig.className = 'fig';
+  fig.style.position = 'relative';
+  fig.innerHTML = `<img src="${m.img}" alt="${m.cap}" loading="lazy">
+    <div class="fig-tools">
+      <button data-l="static" class="on">闈欐€佸眰</button>
+      <button data-l="fx" class="on">鍔ㄦ晥灞?/button>
+      <button data-l="hot" class="on">浜や簰鐑尯</button>
+    </div>`;
+  m.layers.forEach(([type, name, l, t, w, h]) => {
+    const box = document.createElement('div');
+    box.className = CLS[type];
+    box.dataset.l = type;
+    box.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
+    box.innerHTML = `<i>${TAG[type]} ${name}</i>`;
+    fig.appendChild(box);
+  });
+  fig.addEventListener('click', e => {
+    const btn = e.target.closest('.fig-tools button');
+    if (!btn) return;
+    btn.classList.toggle('on');
+    const on = btn.classList.contains('on');
+    fig.querySelectorAll(`[data-l="${btn.dataset.l}"]`).forEach(b => b.style.display = on ? '' : 'none');
+  });
+  const wrap = document.createElement('div');
+  wrap.appendChild(fig);
+  const cap = document.createElement('div');
+  cap.className = 'fig-cap';
+  cap.innerHTML = `<b>${m.cap}</b><span>${m.sub}${m.edge ? ' 路 ?anomaly=' + m.id.split('-')[1] : ''}</span>`;
+  wrap.appendChild(cap);
+  document.getElementById(m.host).appendChild(wrap);
+  HOSTS[m.id] = wrap;
+});
+
+/* 瀵艰埅楂樹寒 */
+const links = document.querySelectorAll('#navLinks a');
+const secs = document.querySelectorAll('.sec');
+const main = document.querySelector('.docs-main');
+if (main && secs.length) {
+  main.addEventListener('scroll', () => {
+    let cur = 0;
+    secs.forEach((s, i) => { if (s.offsetTop - 40 <= main.scrollTop) cur = i; });
+    links.forEach((a, i) => a.classList.toggle('on', i === cur));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+/* ============================================================
+   Design tokens · 储能集群调度大屏
+   低饱和深蓝工业风 / 强光控制室 / 信息层级优先
+   ============================================================ */
+:root{
+  /* 背景层级 */
+  --bg-0:#05080e;
+  --bg-1:#080e17;
+  --bg-2:#0b1420;
+  --bg-3:#0f1b28;
+  --bg-4:#132334;
+
+  /* 描边 */
+  --line-1:rgba(126,163,196,.13);
+  --line-2:rgba(126,163,196,.22);
+  --line-3:rgba(126,163,196,.34);
+
+  /* 文本（v0.9.5 对比度实测调整：--txt-3 5.8:1 / --txt-4 4.5:1，均过 WCAG AA 正文线，层级差保持一档） */
+  --txt-1:#e2ebf5;
+  --txt-2:#a2b6c9;
+  --txt-3:#7d93a6;
+  --txt-4:#6a8093;
+
+  /* 主色：低饱和青蓝 + 钢蓝 */
+  --acc:#3fb6c9;
+  --acc-soft:rgba(63,182,201,.13);
+  --acc-2:#5e8fbb;
+
+  /* 状态色（严格规范） */
+  --ok:#3ea87b;
+  --warn:#d8b24a;
+  --high:#df8a2e;
+  --crit:#e0523f;
+  --off:#5b6b7a;
+
+  --charge:#3fb6c9;
+  --discharge:#dfab52;
+
+  /* 字体 */
+  --font-ui:"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --font-num:"Bahnschrift","DIN Alternate","Roboto Mono",ui-monospace,Consolas,monospace;
+
+  /* 字号阶梯（v0.9.4）：正文下限 15px / 辅助下限 13px，11px 及以下全部清理 */
+  --fs-display:32px;  /* 大屏核心数字 */
+  --fs-h1:24px;
+  --fs-h2:18px;
+  --fs-body:15px;     /* 正文最小 15px */
+  --fs-caption:13px;  /* 辅助信息 */
+  --fs-tiny:12px;     /* 仅单位/时间戳 */
+
+  /* 间距令牌（v0.9.4）：面板内边距 16–20px，面板间距 16px */
+  --sp-1:8px;
+  --sp-2:16px;
+  --sp-3:24px;
+
+  --r:3px;
+}
+
+/* 2K/4K 拼接屏（v0.9.5）：观看距离 3–5m，字号随物理尺寸整体放大一档，不靠 clamp 拉伸 */
+@media (min-width:2560px){
+  :root{
+    --fs-display:40px;
+    --fs-h1:30px;
+    --fs-h2:22px;
+    --fs-body:17px;
+    --fs-caption:15px;
+    --fs-tiny:14px;
+    /* 间距与字号同比例升档（≈1.13×），避免面板密度失衡（v0.9.6 校准） */
+    --sp-1:9px;
+    --sp-2:18px;
+    --sp-3:27px;
+  }
+}
+/* 4K 拼接屏（v0.9.9）：观看距离更远（3–5m 对 3840 物理），再升一档 */
+@media (min-width:3200px){
+  :root{
+    --fs-display:46px;
+    --fs-h1:34px;
+    --fs-h2:25px;
+    --fs-body:19px;
+    --fs-caption:17px;
+    --fs-tiny:15px;
+    --sp-1:10px;
+    --sp-2:20px;
+    --sp-3:30px;
+  }
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%}
+html,body{margin:0}
+body{
+  background:var(--bg-0);
+  color:var(--txt-1);
+  font-family:var(--font-ui);
+  font-size:var(--fs-body);
+  font-variant-numeric:tabular-nums; /* 跳动数字等宽对齐，不抖动 */
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden; /* v0.9.4：流式一屏布局（不再整屏 scale），面板内部各自滚动 */
+}
+h1,h2,h3,h4,p{margin:0;font-weight:500}
+button{font-family:inherit;color:inherit}
+[hidden]{display:none !important} /* 防止组件 display 覆盖 hidden 语义 */
+b,i,em{font-style:normal;font-weight:600}
+::selection{background:rgba(63,182,201,.28)}
+
+/* 滚动条 */
+.scroll{overflow-y:auto;overscroll-behavior:contain}
+.scroll::-webkit-scrollbar{width:6px;height:6px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:rgba(126,163,196,.18);border-radius:3px}
+.scroll::-webkit-scrollbar-thumb:hover{background:rgba(126,163,196,.3)}
+
+/* 数字：等宽、窄体，工业仪表感 */
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+
+/* 大屏容器（v0.9.4 流式布局）：不再 1920×1080 固定画布 + 整屏 scale，
+   改为视口自适应网格 + 固定 px 字号（正文 ≥15px 不被压缩），窄视口下列宽弹性收缩 */
+.app{
+  position:relative;
+  width:100vw;height:100vh;
+  display:grid;
+  /* v1.1 黄金三角：左看站点、中看拓扑（全高）、右看指标+告警+趋势；告警不再横跨底部 */
+  grid-template-columns:clamp(240px,19vw,260px) minmax(0,1fr) clamp(340px,20vw,380px);
+  grid-template-rows:56px minmax(0,1fr) minmax(60px,auto);
+  grid-template-areas:
+    "top    top    top"
+    "left   center right"
+    "bottom bottom bottom";
+  gap:var(--sp-2);
+  padding:var(--sp-2);
+  overflow:hidden; /* 裁剪标注层等比例缩放后的视觉溢出（3840 宽下 --anno-s=2 时 anno-layer 视觉高 2160） */
+  background:
+    radial-gradient(120% 90% at 50% -10%, #0c1826 0%, #070d16 46%, #04070c 100%);
+}
+/* v1.2 驾驶舱模式：投屏态——只留顶栏 KPI 与拓扑主视图（body.cockpit 由 localStorage 记忆） */
+body.cockpit .app{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:56px minmax(0,1fr);
+  grid-template-areas:
+    "top"
+    "center";
+}
+body.cockpit .col-left,
+body.cockpit .col-right,
+body.cockpit .bottombar{display:none}
+/* 极细网格纹理，克制 */
+.app::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(126,163,196,.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126,163,196,.026) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(90% 80% at 50% 40%, #000 0%, transparent 100%);
+}
+.app > *{position:relative;z-index:1}

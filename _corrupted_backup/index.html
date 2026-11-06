@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鑻忓崡鍖哄煙鍌ㄨ兘鐢电珯闆嗙兢 路 鏁板瓧瀛敓璋冨害澶у睆</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.2.2">
+<link rel="stylesheet" href="assets/css/components.css?v=1.2.2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.2.2">
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- ============ 椤堕儴閫氭爮锛坴1.1锛氭爣棰樺乏瀵归綈 + KPI 绐佸嚭 + 鍥炬爣鎿嶄綔鏀跺彸锛?============ -->
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <h1>鑻忓崡鍖哄煙鍌ㄨ兘鐢电珯闆嗙兢<em>路</em>璋冨害鍊煎畧澶у睆</h1>
+    </div>
+
+    <div class="tb-right">
+      <div class="tb-kpi">
+        <label>闆嗙兢鎬昏鏈?/label>
+        <b>1,240<i>MWh</i></b>
+      </div>
+      <div class="tb-kpi">
+        <label>瀹炴椂骞剁綉鍔熺巼</label>
+        <b id="hdrPower">+186.4<i>MW</i></b>
+      </div>
+      <div class="tb-kpi">
+        <label>閫氫俊鍦ㄧ嚎</label>
+        <b class="ok" id="hdrComm">8/8<i>绔?/i></b>
+      </div>
+      <div class="tb-clock">
+        <b id="clockTime">--:--:--</b>
+        <span id="clockDate">2026-11-05 鍛ㄥ洓</span>
+      </div>
+      <div class="nav-more" id="navMore">
+        <button class="tool icon" id="btnNavMore" title="鏇村锛氳璁¤鑼?/ 浜や簰娴佺▼ / 鍒嗗眰绋?/ 鏂规鍙欎簨">鈽?/button>
+        <div class="nav-menu" id="navMenu" hidden>
+          <span class="ver">v1.2-prototype</span>
+          <a href="components.html">璁捐瑙勮寖</a>
+          <a href="flow.html">浜や簰娴佺▼</a>
+          <a href="mockups.html">鍒嗗眰绋?/a>
+          <a href="story.html">鏂规鍙欎簨</a>
+          <div class="kbd-row"><kbd>Esc</kbd> 涓婇捇 / 鍏抽棴鎶藉眽銆€<kbd>Space</kbd> 鏆傚仠鍒锋柊銆€<kbd>C</kbd> 椹鹃┒鑸辨ā寮忋€€<kbd>2D</kbd> 淇</div>
+        </div>
+      </div>
+      <button class="tool icon" id="btnCockpit" title="椹鹃┒鑸辨ā寮忥細鍙暀涓昏鍥句笌鏍稿績 KPI锛岄€傚悎鎶曞睆锛堝揩鎹烽敭 C锛岄€夋嫨浼氳璁颁綇锛? aria-label="鍒囨崲椹鹃┒鑸辨ā寮?>鈼?/button>
+      <button class="tool icon" id="btnCompact" title="绱у噾瀵嗗害锛氭姌鍙犲簳閮ㄧ瓥鐣ユ潯锛屾墿澶т富瑙嗗浘锛堢煯瑙嗗彛鍊煎畧鍙紑锛岄€夋嫨浼氳璁颁綇锛?>鈬?/button>
+      <span class="ver" id="scenarioTag" hidden style="color:#eebd85;border-color:rgba(223,138,46,.4)"></span>
+    </div>
+  </header>
+
+  <!-- ============ 宸︿晶 ============ -->
+  <aside class="col-left">
+
+    <section class="panel" id="clusterPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>鐢电珯闆嗙兢</h3>
+        <span class="hd-tag" id="stationCount">8 搴?/span>
+      </div>
+      <div class="panel-bd">
+        <div class="filter-row" id="stationFilters">
+          <button class="chip is-on" data-filter="all">鍏ㄩ儴 <i>8</i></button>
+          <button class="chip" data-filter="alert">鍛婅 <i>3</i></button>
+          <button class="chip" data-filter="offline">绂荤嚎 <i>1</i></button>
+        </div>
+        <div class="station-list scroll" id="stationList"></div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ============ 涓棿瀛敓涓昏鍖?============ -->
+  <main class="col-center">
+    <section class="stage" id="stage">
+      <canvas id="twinCanvas"></canvas>
+      <div class="stage-veil" id="stageVeil"></div>
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+
+      <div class="hud hud-tl">
+        <div class="crumbs" id="crumbs"></div>
+      </div>
+
+      <div class="hud hud-tr">
+        <div class="tool-group" id="layerToggles">
+          <button class="tool is-on" data-layer="alert">鍛婅</button>
+          <button class="tool is-on" data-layer="link">閾捐矾</button>
+          <button class="tool is-on" data-layer="label">鏍囨敞</button>
+        </div>
+        <button class="tool icon" id="btnTopView" title="淇 / 閫忚">2D</button>
+        <button class="tool icon" id="btnReset" title="澶嶄綅瑙嗚">鈫?/button>
+      </div>
+
+      <div class="stage-card" id="stageCard" hidden></div>
+
+      <div class="hud hud-bl legend">
+        <span class="lg-title">鐘舵€?/span>
+        <span class="lg-item"><i style="background:#3ea87b"></i>姝ｅ父杩愯</span>
+        <span class="lg-item"><i style="background:#dfab52"></i>鏀剧數涓?/span>
+        <span class="lg-item"><i style="background:#e0523f"></i>鍛婅</span>
+        <span class="lg-item"><i style="background:#5b6b7a"></i>绂荤嚎</span>
+      </div>
+
+      <div class="hud hud-br">
+        <span id="camInfo">鎷栨嫿鏃嬭浆 路 婊氳疆缂╂斁 路 鍙抽敭骞崇Щ</span>
+      </div>
+
+      <div class="twin-tip" id="twinTip"></div>
+    </section>
+  </main>
+
+  <!-- ============ 鍙充晶锛坴1.1 榛勯噾涓夎锛氭寚鏍?鈫?鍛婅鍙拌处 鈫?瓒嬪娍锛?============ -->
+  <aside class="col-right">
+
+    <section class="panel" id="metricsPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>鏍稿績鎸囨爣</h3>
+        <span class="hd-tag scope" id="metricScope">鍖哄煙闆嗙兢</span>
+        <button class="link-btn" id="btnScopeBack" hidden>杩斿洖闆嗙兢</button>
+      </div>
+      <div class="panel-bd">
+        <div class="metric-grid" id="metricGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="alertPanel">
+      <div class="panel-hd">
+        <span class="bar crit"></span>
+        <h3>鍛婅鍙拌处</h3>
+        <span class="hd-tag crit" id="alertOpen">鏈棴鐜?6</span>
+        <span class="meta">鎸変紭鍏堢骇鎺掑簭</span>
+        <button class="link-btn" id="btnAlertCsv" title="瀵煎嚭褰撳墠鍛婅鍙拌处锛堟ā鎷燂級">瀵煎嚭 CSV</button>
+      </div>
+      <div class="panel-bd">
+        <div class="filter-row" id="alertFilters"></div>
+        <div class="alert-list scroll" id="alertList" role="list"></div>
+      </div>
+    </section>
+
+    <section class="panel folded" id="chartsPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>瓒嬪娍鍒嗘瀽</h3>
+        <div class="chart-tabs" id="chartTabs">
+          <button class="on" data-tab="power">鍔熺巼</button>
+          <button data-tab="soc">SOC</button>
+        </div>
+        <span class="meta" id="chartMeta">璁″垝 vs 瀹為檯</span>
+        <button class="link-btn" id="btnChartMore" title="灞曞紑娓╁害 / 鍋ュ悍搴︽槑缁嗗浘">鏄庣粏 鈻?/button>
+      </div>
+      <div class="panel-bd chart-body">
+        <div class="chart-main">
+          <div class="chart-title">
+            <span id="mainChartTitle">骞剁綉鍔熺巼 路 璁″垝 / 瀹為檯</span>
+            <span class="lg"><i class="lg-plan"></i>璁″垝<i class="lg-act"></i>瀹為檯</span>
+          </div>
+          <div class="chart-box" id="chartMain"></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-mini">
+            <div class="chart-title"><span id="tempChartTitle">璁惧娓╁害</span><span class="unit">鈩?/span></div>
+            <div class="chart-box" id="chartTemp"></div>
+          </div>
+          <div class="chart-mini">
+            <div class="chart-title"><span id="healthChartTitle">鐢垫睜绨囧仴搴峰害</span><span class="unit">绨?/span></div>
+            <div class="chart-box" id="chartHealth"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ============ 搴曢儴杈呭姪鏍?============ -->
+  <footer class="bottombar">
+
+    <div class="bb">
+      <div class="bb-hd">璋冨害绛栫暐<span class="tag ok" id="stratState">鎵ц涓?/span></div>
+      <div class="seg" id="strategySeg">
+        <button class="on" data-strategy="peak">鍓婂嘲濉胺</button>
+        <button data-strategy="freq">璋冮鍝嶅簲</button>
+        <button data-strategy="reserve">鑷富澶囩敤</button>
+      </div>
+      <div class="strat-info">
+        <span id="stratWindow">浣庤胺鍏呯數 23:30鈥?6:30 / 鏅氬嘲鏀剧數 17:30鈥?1:00</span>
+        <b id="stratPower">-108.6 MW</b>
+      </div>
+    </div>
+
+    <div class="bb">
+      <div class="bb-hd">閫氫俊閾捐矾<span class="tag ok">4/4 姝ｅ父</span></div>
+      <div class="comm-list" id="commList"></div>
+    </div>
+
+    <div class="bb">
+      <div class="bb-hd">璁惧鍦ㄧ嚎鐜?/div>
+      <div class="on-wrap">
+        <span class="donut" id="onlineDonut" style="--p:98.6"></span>
+        <b id="onlineRate">98.6<i>%</i></b>
+        <span class="on-legend" id="onLegend">
+          <span><i style="background:#3ea87b"></i>PCS</span>
+          <span><i style="background:#3fb6c9"></i>BMS</span>
+          <span><i style="background:#5e8fbb"></i>EMS</span>
+          <span><i style="background:#d8b24a"></i>娑堥槻</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="bb ai-block">
+      <div class="bb-hd">AI 杈呭姪鍐崇瓥<span class="tag acc">鍦ㄧ嚎</span><button class="link-btn" id="btnAiDrawer">灞曞紑 鈥?/button></div>
+      <div class="ai-lines" id="aiLines"></div>
+    </div>
+
+  </footer>
+
+  <!-- ============ 婕旂ず瀵艰闈㈡澘锛堟敹鍙ｆ紨绀虹敤锛屼笉鐮村潖鍊煎畧瑙嗗浘锛?============ -->
+  <button class="demo-fab" id="demoFab">婕旂ず瀵艰 鈻?/button>
+  <div class="demo-panel" id="demoPanel" hidden>
+    <div class="dp-hd">婕旂ず瀵艰<span id="demoClose" title="鏀惰捣">脳</span></div>
+    <div class="dp-sec">
+      <label>瑙嗗浘涓嬮捇</label>
+      <div class="dp-row c4">
+        <button data-dp-go="L0">L0 闆嗙兢</button>
+        <button data-dp-go="L1">L1 閿″北</button>
+        <button data-dp-go="L2">L2 2#鑸?/button>
+        <button data-dp-go="L3">L3 绨?/button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>寮傚父宸ュ喌</label>
+      <div class="dp-row c4">
+        <button data-dp-sc="">姝ｅ父</button>
+        <button data-dp-sc="offline">绂荤嚎</button>
+        <button data-dp-sc="multi">澶氬憡璀?/button>
+        <button data-dp-sc="overtemp">瓒呮俯</button>
+        <button data-dp-linkdown>鏁版嵁婧愭柇寮€</button>
+        <button data-dp-lite>鎬ц兘杞婚噺鍖?/button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>瑙掕壊鏉冮檺棰勮锛圲I 婕旂ず锛?/label>
+      <div class="dp-row c4">
+        <button data-dp-role="admin">绠＄悊鍛?/button>
+        <button data-dp-role="dispatcher">璋冨害鍛?/button>
+        <button data-dp-role="inspector">杩愮淮宸℃</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>蹇収鍥炴斁锛堟湰鍦板瓨鍌ㄦ紨绀猴級</label>
+      <div class="dp-row">
+        <button data-dp-snap-save>淇濆瓨褰撳墠蹇収</button>
+        <div class="dp-snaps" id="dpSnapList"></div>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>璋冨害绛栫暐</label>
+      <div class="dp-row">
+        <button data-dp-strategy="peak">鍓婂嘲濉胺</button>
+        <button data-dp-strategy="freq">璋冮鍝嶅簲</button>
+        <button data-dp-strategy="reserve">鑷富澶囩敤</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>鏍囨敞妯″紡锛堝搴斿垎灞傜涓夎壊锛?/label>
+      <div class="dp-row c4">
+        <button data-dp-anno="static">闈欐€佸眰</button>
+        <button data-dp-anno="fx">鍔ㄦ晥灞?/button>
+        <button data-dp-anno="hot">鐑尯</button>
+        <button data-dp-anno="all">鍏ㄩ儴</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>钀藉湴鏉愭枡</label>
+      <div class="dp-row">
+        <button data-dp-doc="feasibility.md">鏌ョ湅钀藉湴璇存槑 鈫?/button>
+        <button data-dp-doc="requirement-trace.md">闇€姹傝拷韪〃 鈫?/button>
+        <button data-dp-doc="field-map.md">瀛楁鏄犲皠琛?鈫?/button>
+        <button data-dp-doc="benchmark.md">鎬ц兘瀹炴祴鎶ュ憡 鈫?/button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 鍏ㄥ眬鏍囨敞瑕嗙洊灞傦紙1920脳1080 璁捐鍧愭爣锛屼笌鍒嗗眰绋垮儚绱犲榻愶級 -->
+  <div class="anno-layer" id="annoLayer"></div>
+
+</div>
+
+<!-- AI 鍐崇瓥鎶藉眽 -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="aiDrawer" aria-hidden="true">
+  <div class="drawer-hd">
+    <div>
+      <b>AI 杈呭姪鍐崇瓥</b>
+      <span>鏍瑰洜鎺ㄧ悊 路 鏀剁泭棰勪及 路 绛栫暐寤鸿</span>
+    </div>
+    <button class="icon-btn" id="drawerClose" aria-label="鍏抽棴">脳</button>
+  </div>
+  <div class="drawer-bd scroll" id="drawerBody"></div>
+</aside>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/twin.js"></script>
+<script src="assets/js/scenes.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

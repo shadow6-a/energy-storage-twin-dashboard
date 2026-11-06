@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>封面海报导出</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1920px;height:1080px;overflow:hidden;background:
+    radial-gradient(1200px 700px at 62% 38%, #0c1a28 0%, #05080e 62%),
+    #04060b;font-family:"HarmonyOS Sans SC","Microsoft YaHei",sans-serif;position:relative}
+  .grid-bg{position:absolute;inset:0;
+    background:linear-gradient(rgba(126,163,196,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(126,163,196,.045) 1px,transparent 1px);
+    background-size:48px 48px}
+  .corner{position:absolute;width:26px;height:26px;border-color:rgba(63,182,201,.5);border-style:solid}
+  .c-tl{left:36px;top:36px;border-width:2px 0 0 2px}
+  .c-tr{right:36px;top:36px;border-width:2px 2px 0 0}
+  .c-bl{left:36px;bottom:36px;border-width:0 0 2px 2px}
+  .c-br{right:36px;bottom:36px;border-width:0 2px 2px 0}
+
+  .hd{position:absolute;left:72px;top:66px;display:flex;align-items:baseline;gap:20px}
+  .hd .mark{display:flex;gap:5px;align-self:center}
+  .hd .mark i{width:7px;height:22px;background:#3fb6c9;display:block;opacity:.9}
+  .hd .mark i:nth-child(2){height:30px;opacity:.65}
+  .hd .mark i:nth-child(3){height:16px;opacity:.4}
+  .hd .mark i:nth-child(4){height:26px;opacity:.55}
+  .title{font-size:46px;letter-spacing:.18em;color:#e8f1fa;font-weight:600}
+  .title em{font-style:normal;color:#3fb6c9}
+  .sub{position:absolute;left:72px;top:140px;display:flex;align-items:center;gap:16px}
+  .sub b{font-size:17px;letter-spacing:.5em;color:#a9bcd0;font-weight:400}
+  .sub span{font-family:Consolas,monospace;font-size:11px;letter-spacing:.22em;color:#5d7387;border:1px solid rgba(126,163,196,.25);padding:3px 10px}
+
+  .shots{position:absolute;left:96px;top:210px;width:1180px;display:flex;gap:22px}
+  .shot{position:relative;flex:1;border:1px solid rgba(126,163,196,.28);background:#04070c;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+  .shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center;opacity:.96}
+  .shot .tag{position:absolute;left:0;bottom:0;background:rgba(6,11,18,.85);border-top:1px solid rgba(126,163,196,.3);border-right:1px solid rgba(126,163,196,.3);padding:6px 14px;font-size:12px;letter-spacing:.2em;color:#a9bcd0}
+  .shot .tag b{color:#a9e5ee;font-weight:600;margin-right:8px}
+  .shot-a{height:660px}
+  .shot-b{height:660px}
+  .shot .accent{position:absolute;left:-1px;top:-1px;width:34px;height:34px;border-top:2px solid #3fb6c9;border-left:2px solid #3fb6c9}
+
+  .matrix{position:absolute;right:96px;top:210px;width:520px;background:linear-gradient(180deg,#0b1522,#081019);border:1px solid rgba(126,163,196,.24);padding:18px 20px}
+  .matrix h4{font-size:13px;letter-spacing:.24em;color:#cfe0ee;font-weight:600;margin-bottom:14px}
+  .matrix h4 span{color:#5d7387;font-size:10px;margin-left:10px;letter-spacing:.14em}
+  .mx{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .mx .cell{height:64px;border:1px solid rgba(126,163,196,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:rgba(16,29,43,.6)}
+  .mx .lv{font-size:11px;padding:1px 8px;letter-spacing:.08em}
+  .mx .st{font-size:9px;letter-spacing:.12em}
+  .lv-crit{color:#f2a89c;background:rgba(224,82,63,.14);border:1px solid rgba(224,82,63,.4)}
+  .lv-high{color:#eebd85;background:rgba(223,138,46,.13);border:1px solid rgba(223,138,46,.4)}
+  .lv-warn{color:#e5d18a;background:rgba(216,178,74,.12);border:1px solid rgba(216,178,74,.38)}
+  .lv-info{color:#a9c4dd;background:rgba(94,143,187,.13);border:1px solid rgba(94,143,187,.38)}
+  .s0{color:#f2a89c}.s1{color:#e5c590}.s2{color:#8fa5b8}.s3{color:#5d7387}
+  .mx-note{margin-top:12px;font-size:10px;color:#5d7387;letter-spacing:.1em;line-height:1.8}
+  .mx-note b{color:#8fa5b8;font-weight:500}
+
+  .feats{position:absolute;right:96px;top:500px;width:520px;display:flex;flex-direction:column;gap:11px}
+  .feats .f{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#a9bcd0;letter-spacing:.06em}
+  .feats .f i{width:6px;height:6px;background:#3fb6c9;flex:0 0 auto;box-shadow:0 0 0 3px rgba(63,182,201,.15)}
+  .feats .f b{color:#dfeef8;font-weight:600}
+
+  .ft{position:absolute;left:96px;bottom:64px;right:96px;display:flex;align-items:flex-end;justify-content:space-between}
+  .ft .l{font-size:11.5px;color:#5d7387;letter-spacing:.16em;line-height:2}
+  .ft .r{text-align:right}
+  .ft .r .n{font-family:Consolas,monospace;font-size:11px;color:#5d7387;letter-spacing:.18em}
+  .ft .r .v{font-size:12px;color:#a9bcd0;letter-spacing:.2em;margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <span class="corner c-tl"></span><span class="corner c-tr"></span>
+  <span class="corner c-bl"></span><span class="corner c-br"></span>
+
+  <div class="hd">
+    <div class="mark"><i></i><i></i><i></i><i></i></div>
+    <div class="title">储能集群数字孪生调度可视化<em>｜</em>运维值守 UI 方案</div>
+  </div>
+  <div class="sub">
+    <b>区域分布式储能电站集群 · 数字孪生调度大屏</b>
+    <span>OPERATIONS WATCH Edition</span>
+    <span>V0.9.1-prototype · 1920×1080</span>
+  </div>
+
+  <div class="shots">
+    <div class="shot shot-a">
+      <span class="accent"></span>
+      <img src="assets/mockups/01-overview.png" alt="L0">
+      <div class="tag"><b>L0</b>集群总览 · 三级下钻</div>
+    </div>
+    <div class="shot shot-b">
+      <span class="accent"></span>
+      <img src="assets/mockups/04-cluster.png" alt="L3">
+      <div class="tag"><b>L3</b>电池簇 BMS · 告警定位终端</div>
+    </div>
+  </div>
+
+  <div class="matrix">
+    <h4>告警矩阵 <span>4 等级 × 4 处置状态</span></h4>
+    <div class="mx">
+      <div class="cell"><span class="lv lv-crit">紧急</span><span class="st s0">未确认</span></div>
+      <div class="cell"><span class="lv lv-high">重要</span><span class="st s0">未确认</span></div>
+      <div class="cell"><span class="lv lv-warn">一般</span><span class="st s1">已确认</span></div>
+      <div class="cell"><span class="lv lv-info">提示</span><span class="st s2">已闭环</span></div>
+      <div class="cell"><span class="lv lv-crit" style="filter:grayscale(.7);opacity:.55">紧急</span><span class="st s3">已抑制</span></div>
+      <div class="cell"><span class="lv lv-high" style="opacity:.6">重要</span><span class="st s2">已闭环</span></div>
+      <div class="cell"><span class="lv lv-warn" style="opacity:.6">一般</span><span class="st s2">已闭环</span></div>
+      <div class="cell"><span class="lv lv-info" style="opacity:.6">提示</span><span class="st s3">已抑制</span></div>
+    </div>
+    <div class="mx-note"><b>视觉唯一性：</b>每格一个等级 × 状态组合对应唯一视觉，告警语义全局贯通 2D 面板与 3D 场景。</div>
+  </div>
+
+  <div class="feats">
+    <div class="f"><i></i><span>三级递进下钻：<b>集群 → 单站 → 舱内簇群 → BMS</b>，镜头动画与指标联动</span></div>
+    <div class="f"><i></i><span>告警完整状态机：<b>未确认 → 确认 → 闭环</b>，抑制旁路，四处同步联动</span></div>
+    <div class="f"><i></i><span>计划 vs 实时曲线时间对齐，<b>策略驱动计划曲线重算</b></span></div>
+    <div class="f"><i></i><span>AI 辅助决策：<b>置信度根因 + 收益预估 + 可采纳动作</b></span></div>
+    <div class="f"><i></i><span>动效克制：<b>仅告警脉冲与功率链路</b>两类，节奏与业务绑定</span></div>
+    <div class="f"><i></i><span>数据层解耦：<b>预留 WebSocket</b> 真实 BMS/PCS 接入，自研轻量 3D</span></div>
+  </div>
+
+  <div class="ft">
+    <div class="l">
+      组件资产包 · 交互流程文档 · 分层视觉稿（4K ×7）· 作品集叙事 —— 配套文档齐全<br>
+      异常工况内置演示：全站通信中断 / 多告警并发 / 电池簇严重超温
+    </div>
+    <div class="r">
+      <div class="n">ENERGY STORAGE CLUSTER · DIGITAL TWIN DISPATCH</div>
+      <div class="v">个人作品集项目 · 工业 UI 可视化探索</div>
+    </div>
+  </div>
+</body>
+</html>

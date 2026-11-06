@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>浜や簰娴佺▼ 路 鍌ㄨ兘闆嗙兢璋冨害澶у睆</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/components.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/docs.css?v=1.2.3">
+<style>
+  .mermaid{display:flex;justify-content:center;background:rgba(12,22,35,.55);border:1px solid var(--line-1);border-radius:3px;padding:14px 8px;overflow-x:auto}
+  .mermaid svg{max-width:100%;height:auto}
+  details.msrc{margin-top:8px;border:1px dashed rgba(126,163,196,.16);border-radius:3px}
+  details.msrc summary{cursor:pointer;padding:7px 12px;font-size:10.5px;color:var(--txt-4);letter-spacing:.08em;user-select:none}
+  details.msrc summary:hover{color:#a9e5ee}
+  details.msrc pre{margin:0;padding:10px 14px 12px;font-family:Consolas,monospace;font-size:10.5px;line-height:1.7;color:#8fa5b8;white-space:pre-wrap;border-top:1px dashed rgba(126,163,196,.14)}
+  .mblock + .mblock{margin-top:12px}
+  .mblock>label{display:block;font-size:10px;color:var(--txt-4);letter-spacing:.1em;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div class="docs">
+  <nav class="docs-nav">
+    <div class="brand">
+      <b>浜や簰娴佺▼鏂囨。</b>
+      <span>INTERACTION FLOW 路 V0.9.1</span>
+    </div>
+    <div class="links" id="navLinks">
+      <a href="#f1" class="on"><i>01</i>鍛婅鐘舵€佹祦杞浘</a>
+      <a href="#f2"><i>02</i>涓嬮捇浜や簰閾捐矾鍥?/a>
+      <a href="#f3"><i>03</i>绛栫暐涓嬪彂鍒嗘敮鍥?/a>
+      <a href="#f4"><i>04</i>寮傚父杈圭晫鍒嗘敮鍥?/a>
+      <a href="#f5"><i>05</i>璺ㄥ尯鑱斿姩瑙勫垯</a>
+      <a href="#f6"><i>06</i>杈圭晫涓庡紓甯告€?/a>
+    </div>
+    <a class="back" href="index.html">鈥?杩斿洖璋冨害澶у睆</a>
+  </nav>
+
+  <main class="docs-main">
+
+    <div class="doc-hero">
+      <div class="crumbs-doc">鍌ㄨ兘鐢电珯闆嗙兢鏁板瓧瀛敓璋冨害澶у睆 <span>/</span> <b>浜や簰娴佺▼</b></div>
+      <h1>鍛婅闂幆 路 涓夌骇涓嬮捇 路 绛栫暐涓嬪彂 路 寮傚父杈圭晫</h1>
+      <p>
+        鏈枃妗ｅ畾涔夊ぇ灞忓洓鏉℃牳蹇冮摼璺殑鐘舵€併€佽Е鍙戜笌鍙嶉瑙勫垯锛屽浘婧愪负 Mermaid锛堝彲澶嶅埗鍒版敮鎸?Mermaid 鐨勫伐鍏蜂簩娆＄紪杈戯級锛?
+        閰嶅鏂囧瓧瑙勫垯琛ㄦ弿杩版瘡鏉¤竟鐨勮Е鍙戞潯浠躲€佺晫闈㈠搷搴斾笌鏁版嵁鍝嶅簲銆傛墍鏈夋祦杞弧瓒炽€屼竴娆＄偣鍑汇€佷竴涓槑纭搷搴斻€嶃€?
+      </p>
+    </div>
+
+    <!-- 01 鍛婅鐘舵€佹満 -->
+    <section class="sec" id="f1">
+      <div class="sec-hd"><span class="no">01</span><h2>鍛婅瀹屾暣鐘舵€佹祦杞浘</h2><span class="tip">ALARM STATE MACHINE</span></div>
+      <div class="card mblock">
+        <div class="mblock"><label>鐘舵€佹満 路 涓绘祦绋?+ 鎶戝埗鏃佽矾</label>
+          <pre class="mermaid">
+stateDiagram-v2
+    direction LR
+    state "鏈‘璁?s0" as s0
+    state "宸茬‘璁?s1" as s1
+    state "宸查棴鐜?s2" as s2
+    state "宸叉姂鍒?s3" as s3
+    [*] --> s0 : BMS/PCS/娑堥槻 浜х敓
+    s0 --> s1 : 鐐瑰嚮銆岀‘璁ゃ€?br/>璐ｄ换璁ゅ畾
+    s1 --> s2 : 鐐瑰嚮銆岄棴鐜€?br/>澶勭疆瀹屾垚
+    s0 --> s3 : 璁剧疆鎶戝埗绐楀彛
+    s3 --> s0 : 绐楀彛缁撴潫<br/>鎭㈠鏈‘璁?
+    s1 --> s3 : 纭鍚庢殏缂?br/>璁剧獥鍙?
+    s2 --> [*]
+          </pre>
+        </div>
+        <details class="msrc"><summary>鏌ョ湅 / 澶嶅埗 Mermaid 婧愮爜</summary><pre>stateDiagram-v2
+    direction LR
+    state "鏈‘璁?s0" as s0
+    state "宸茬‘璁?s1" as s1
+    state "宸查棴鐜?s2" as s2
+    state "宸叉姂鍒?s3" as s3
+    [*] --> s0 : BMS/PCS/娑堥槻 浜х敓
+    s0 --> s1 : 鐐瑰嚮銆岀‘璁ゃ€?璐ｄ换璁ゅ畾
+    s1 --> s2 : 鐐瑰嚮銆岄棴鐜€?澶勭疆瀹屾垚
+    s0 --> s3 : 璁剧疆鎶戝埗绐楀彛
+    s3 --> s0 : 绐楀彛缁撴潫 鎭㈠鏈‘璁?
+    s1 --> s3 : 纭鍚庢殏缂?璁剧獥鍙?
+    s2 --> [*]</pre></details>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <table class="spec-table">
+          <tr><th>杩佺Щ</th><th>瑙﹀彂</th><th>鐣岄潰鍝嶅簲</th><th>鏁版嵁鍝嶅簲</th></tr>
+          <tr><td class="num">浜х敓 鈫?s0</td><td>璁惧涓婃姤 / 闃堝€艰秺闄?/td><td>鍙拌处缃《鎻掑叆锛岀瓑绾ц壊鏉￠珮浜?3s</td><td>鏈棴鐜?+1锛岀數绔欒瑙掓爣 +1锛岄《鏍忚仈鍔?/td></tr>
+          <tr><td class="num">s0 鈫?s1</td><td>鐐瑰嚮銆岀‘璁ゃ€嶆寜閽?/td><td>鐘舵€佸窘鏍囧彉銆屽凡纭銆嶏紝瑙ｉ攣銆岄棴鐜€?/td><td>鎺掑簭鏉冮噸涓嬮檷锛屼絾浠嶈鍏ユ湭闂幆</td></tr>
+          <tr><td class="num">s1 鈫?s2</td><td>鐐瑰嚮銆岄棴鐜€嶆寜閽?/td><td>鏁磋闄嶉€忔槑搴︼紝绉诲嚭缃《鍖?/td><td>鏈棴鐜?鈭?锛岃鏍囦笌椤舵爮鍚屾閫掑噺</td></tr>
+          <tr><td class="num">s0/s1 鈫?s3</td><td>璁剧疆鎶戝埗绐楀彛</td><td>鐏伴樁 + 銆屽凡鎶戝埗銆嶅窘鏍囷紝涓嶅弬涓庣疆椤?/td><td>涓嶈鏁般€佷笉鎻愮ず锛涚獥鍙ｇ粨鏉熻嚜鍔ㄥ洖 s0</td></tr>
+          <tr><td class="num">鍔ㄦ晥鑱斿姩</td><td colspan="3">榛樿杞婚噺鍖栵紙鑴夊啿闈欐€佹弿杈癸級涓嬶紝<b>绱ф€ョ骇 s0 鍑虹幇鏃朵粎璇ユ嫇鎵戣妭鐐硅嚜鍔ㄦ彁鏉冧负鍔ㄦ€佹墿鏁ｈ剦鍐?/b>锛涙帹杩涜嚦 s1/s2 鍚庤嚜鍔ㄥ洖钀借交閲忓寲鈥斺€斾綆閰嶆€ц兘涓庣揣鎬ヤ俊鍙峰彲瑙佹€у吋寰楋紙v0.9.5锛?/td></tr>
+          <tr><td class="num">鎺掑簭瑙勫垯</td><td colspan="3">s0 &gt; s1 &gt; s2 &gt; s3 鈫?绛夌骇锛堢揣鎬?gt;閲嶈&gt;涓€鑸?gt;鎻愮ず锛夆啋 鍙戠敓鏃堕棿鍗囧簭</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 02 涓嬮捇 -->
+    <section class="sec" id="f2">
+      <div class="sec-hd"><span class="no">02</span><h2>涓嬮捇浜や簰閾捐矾鍥?/h2><span class="tip">DRILL-DOWN CHAIN 路 L0鈫扡3</span></div>
+      <div class="card mblock">
+        <div class="mblock"><label>涓婚摼璺細鐐瑰嚮鐐逛綅 鈫?闀滃ご鍔ㄧ敾 鈫?闈㈡澘鎸囨爣鑱斿姩</label>
+          <pre class="mermaid">
+flowchart LR
+    A["L0 鍖哄煙鎬昏<br/>8 绔欑偣浣?+ 姹囬泦鐐?] -->|鐐瑰嚮淇℃爣| B["闀滃ご鑱氱劍<br/>620ms 鎺ㄨ繎 + 楂樹寒"]
+    B -->|鑷姩| C["L1 绔欏唴瀛敓<br/>鑸变綋 / PCS / 涓诲彉"]
+    C -->|鐐瑰嚮鑸变綋| D["L2 鑸卞唴绨囩兢<br/>12 鐢垫睜绨?+ 姣嶆帓"]
+    D -->|鐐瑰嚮绨噟 E["L3 鐢垫睜绨?BMS<br/>鍗曚綋鐢靛帇 / 娓╁害"]
+    E -.->|Esc / 闈㈠寘灞憒 D
+    D -.->|Esc / 闈㈠寘灞憒 C
+    C -.->|Esc / 闈㈠寘灞憒 A
+    style A fill:#12222f,stroke:#3fb6c9
+    style E fill:#12222f,stroke:#3ea87b
+          </pre>
+        </div>
+        <details class="msrc"><summary>鏌ョ湅 / 澶嶅埗 Mermaid 婧愮爜</summary><pre>flowchart LR
+    A["L0 鍖哄煙鎬昏 8绔欑偣浣?姹囬泦鐐?] -->|鐐瑰嚮淇℃爣| B["闀滃ご鑱氱劍 620ms鎺ㄨ繎+楂樹寒"]
+    B -->|鑷姩| C["L1 绔欏唴瀛敓 鑸变綋/PCS/涓诲彉"]
+    C -->|鐐瑰嚮鑸变綋| D["L2 鑸卞唴绨囩兢 12鐢垫睜绨?姣嶆帓"]
+    D -->|鐐瑰嚮绨噟 E["L3 鐢垫睜绨嘊MS 鍗曚綋鐢靛帇/娓╁害"]
+    E -.->|Esc/闈㈠寘灞憒 D
+    D -.->|Esc/闈㈠寘灞憒 C
+    C -.->|Esc/闈㈠寘灞憒 A</pre></details>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <table class="spec-table">
+          <tr><th>姝ラ</th><th>瑙﹀彂</th><th>绌洪棿鍝嶅簲锛?D锛?/th><th>鏁版嵁鍝嶅簲锛?D 闈㈡澘锛?/th></tr>
+          <tr><td class="num">L0 鈫?鑱氱劍</td><td>鐐瑰嚮淇℃爣锛堝崐寰?24px 鐑尯锛?/td><td>鐩告満 target/dist/pitch 涓夊弬鏁扮紦鍔?620ms</td><td>鏃狅紙绛夊緟灞傜骇鍒囨崲锛?/td></tr>
+          <tr><td class="num">鈫?L1</td><td>鑱氱劍缁撴潫鍚庤嚜鍔?/ 宸︿晶鐢电珯琛?/td><td>鍒囨崲绔欏唴鍦烘櫙锛?80ms 娣″叆娣″嚭</td><td>鎸囨爣鍗°€佷笁寮犲浘琛ㄥ叏閮ㄥ垏鎹负鍗曠珯鏁版嵁锛涢潰鍖呭睉 +1 绾?/td></tr>
+          <tr><td class="num">鈫?L2</td><td>鐐瑰嚮鑸变綋 / 娴崱銆岃繘鍏ョ數姹犺埍銆?/td><td>鍒囨崲鑸卞唴鍦烘櫙锛?2 绨囬樀鍒?+ 姣嶆帓</td><td>鎸囨爣鍒囨崲涓鸿埍绾?SOC/SOH/娓╁害锛涜秼鍔垮浘鍙樹负绨囨俯搴?SOC 鏌辩姸</td></tr>
+          <tr><td class="num">鈫?L3</td><td>鐐瑰嚮绨?/ 娴崱銆屾煡鐪嬬數姹犵皣銆?/td><td>鍦烘櫙涓嶅垏鎹紝閫変腑绨囨弿杈?+ 鍦伴潰妞渾</td><td>瓒嬪娍鍥惧彉涓哄崟浣撶數鍘?娓╁害鏇茬嚎銆佷竴鑷存€х幆褰紱娴崱鏄剧ず BMS 璇︽儏</td></tr>
+          <tr><td class="num">鍥為€€</td><td class="num">Esc / 闈㈠寘灞?/ 娴崱銆岃繑鍥炪€?/td><td>閫愮骇鎭㈠涓婄骇鍦烘櫙鐩告満</td><td>鎸囨爣涓庡浘琛ㄥ洖閫€瀵瑰簲鑼冨洿锛岄€変腑鎬佹竻闄?/td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 绛栫暐 -->
+    <section class="sec" id="f3">
+      <div class="sec-hd"><span class="no">03</span><h2>绛栫暐涓嬪彂鍒嗘敮鍥?/h2><span class="tip">STRATEGY DISPATCH</span></div>
+      <div class="card mblock">
+        <div class="mblock"><label>绛栫暐閫夋嫨 鈫?璁″垝閲嶇畻 鈫?涓嬪彂 鈫?AI 澶嶆牳</label>
+          <pre class="mermaid">
+flowchart TD
+    S["搴曢儴绛栫暐鍒嗘閫夋嫨"] --> P1["鍓婂嘲濉胺<br/>绯绘暟 1.0 路 涓ゅ厖涓ゆ斁"]
+    S --> P2["璋冮鍝嶅簲<br/>绯绘暟 0.55 路 棰勭暀 55% 璋冭妭瀹归噺"]
+    S --> P3["鑷富澶囩敤<br/>绯绘暟 0.28 路 SOC 缁存寔 55-65%"]
+    P1 --> R["璁″垝鏇茬嚎閲嶇畻<br/>瓒嬪娍鍖鸿櫄绾垮嵆鏃舵洿鏂?]
+    P2 --> R
+    P3 --> R
+    R --> X["涓嬪彂 路 鐘舵€佹爣绛俱€屾墽琛屼腑銆?br/>绐楀彛 + 鐩爣鍔熺巼鏇存柊"]
+    X --> AI["AI 澶嶆牳<br/>鏀剁泭棰勪及 / 鍋忓樊瓒呴檺鎻愰啋"]
+    AI -->|閲囩撼| T["鐢熸垚寤鸿鍗?br/>#DT-xxxx-缂栧彿 toast"]
+    AI -->|鏆備笉| N["璁板綍浜哄伐澶嶆牳椤?]
+    style S fill:#12222f,stroke:#3fb6c9
+    style X fill:#1a2433,stroke:#df8a2e
+          </pre>
+        </div>
+        <details class="msrc"><summary>鏌ョ湅 / 澶嶅埗 Mermaid 婧愮爜</summary><pre>flowchart TD
+    S["搴曢儴绛栫暐鍒嗘閫夋嫨"] --> P1["鍓婂嘲濉胺 绯绘暟1.0 涓ゅ厖涓ゆ斁"]
+    S --> P2["璋冮鍝嶅簲 绯绘暟0.55 棰勭暀55%璋冭妭瀹归噺"]
+    S --> P3["鑷富澶囩敤 绯绘暟0.28 SOC缁存寔55-65%"]
+    P1 --> R["璁″垝鏇茬嚎閲嶇畻 瓒嬪娍鍖鸿櫄绾垮嵆鏃舵洿鏂?]
+    P2 --> R
+    P3 --> R
+    R --> X["涓嬪彂 鐘舵€佹爣绛炬墽琛屼腑 绐楀彛+鐩爣鍔熺巼鏇存柊"]
+    X --> AI["AI澶嶆牳 鏀剁泭棰勪及/鍋忓樊瓒呴檺鎻愰啋"]
+    AI -->|閲囩撼| T["鐢熸垚寤鸿鍗?#DT-xxxx-缂栧彿 toast"]
+    AI -->|鏆備笉| N["璁板綍浜哄伐澶嶆牳椤?]</pre></details>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <table class="spec-table">
+          <tr><th>绛栫暐</th><th>璁″垝鏇茬嚎褰㈡€?/th><th>搴曢儴闈㈡澘鍙嶉</th><th>涓氬姟鍚箟</th></tr>
+          <tr><td class="num">鍓婂嘲濉胺</td><td>涓ゅ厖涓ゆ斁锛岃胺娈?鈭?0MW / 鏅氬嘲 +150MW锛屼笌瀹炴椂璁″垝涓€鑷?/td><td>绐楀彛銆屼綆璋峰厖鐢?23:30鈥?6:30 / 鏅氬嘲鏀剧數 17:30鈥?1:00銆?/td><td>鍒嗘椂鐢典环濂楀埄涓轰富锛孲OC 鍏ㄥ尯闂村埄鐢?/td></tr>
+          <tr><td class="num">璋冮鍝嶅簲</td><td>鏁翠綋骞呭€?脳0.55锛屽舰鎬佹敹绐?/td><td>銆孉GC 璋冮閲岀▼ 1,860MW 路 姝诲尯 卤2MW銆?/td><td>棰勭暀璋冭妭瀹归噺锛屽悶鍚愭崲璋冮琛ュ伩</td></tr>
+          <tr><td class="num">鑷富澶囩敤</td><td>骞呭€?脳0.28锛屾洸绾胯秼骞?/td><td>銆岀缃戝鐢?30min 路 SOC 缁存寔 55鈥?5%銆?/td><td>闄嶄綆鍚炲悙淇濆悗澶囧閲?/td></tr>
+          <tr><td class="num">杈圭晫</td><td colspan="3">璁″垝鏇茬嚎浠呭彈绛栫暐褰卞搷锛涖€屽疄闄呫€嶆洸绾垮缁堝弽鏄犵湡瀹炲姛鐜囷紝褰㈡垚璁″垝/瀹炲喌鍋忓樊瀵规瘮銆侫I 寤鸿涓嶇洿鎺ヤ慨鏀圭瓥鐣ワ紝闇€鍊肩彮鍛樼‘璁ら噰绾炽€?/td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 04 寮傚父杈圭晫 -->
+    <section class="sec" id="f4">
+      <div class="sec-hd"><span class="no">04</span><h2>寮傚父杈圭晫鍒嗘敮鍥?/h2><span class="tip">EDGE CASES</span></div>
+      <div class="card mblock">
+        <div class="mblock"><label>閫氫俊涓柇 / 绂荤嚎绔欑偣 / 鍛婅鎶戝埗鍐茬獊</label>
+          <pre class="mermaid">
+flowchart TD
+    A["閫氫俊涓柇妫€娴?br/>蹇冭烦瓒呮椂 120s"] --> B["鐢电珯绾?鍗曠珯绂荤嚎"]
+    A --> C["闆嗙兢绾?鍏ㄧ珯涓柇"]
+    B --> B1["淇℃爣鐏拌壊 路 鏃犺剦鍐叉棤娴佸悜<br/>toast銆岀绾垮揩鐓с€嵚?鎸囨爣鏍囨敞蹇収"]
+    C --> C1["椤舵爮鍦ㄧ嚎 0/8 路 鍏ㄥ満鏅檷绾?br/>杩涘叆绂荤嚎鍊煎畧妯″紡"]
+    D["鏂板憡璀︿骇鐢?] --> E{鐩爣鏉＄洰鐘舵€?}
+    E -->|鏈‘璁 F["鐩存帴缃《<br/>姝ｅ父闂幆娴佺▼"]
+    E -->|宸叉姂鍒秥 G["鎶戝埗鍐茬獊鍒ゅ畾:<br/>绛夌骇 鈮?閲嶈 鈫?寮哄埗鍞ら啋鑷虫湭纭<br/>绛夌骇 &lt; 閲嶈 鈫?绱璁℃暟寤跺悗鎻愰啋"]
+    E -->|宸查棴鐜瘄 H["鐢熸垚鍏宠仈鏂颁簨浠?br/>涓嶅娲绘棫鍛婅"]
+    G --> I["鎶戝埗绐楀彛缁撴潫<br/>缁熶竴鎭㈠鏈‘璁?]
+    style A fill:#1a2433,stroke:#df8a2e
+    style G fill:#1a2433,stroke:#e0523f
+          </pre>
+        </div>
+        <details class="msrc"><summary>鏌ョ湅 / 澶嶅埗 Mermaid 婧愮爜</summary><pre>flowchart TD
+    A["閫氫俊涓柇妫€娴?蹇冭烦瓒呮椂120s"] --> B["鐢电珯绾?鍗曠珯绂荤嚎"]
+    A --> C["闆嗙兢绾?鍏ㄧ珯涓柇"]
+    B --> B1["淇℃爣鐏拌壊 鏃犺剦鍐叉棤娴佸悜 toast绂荤嚎蹇収 鎸囨爣鏍囨敞蹇収"]
+    C --> C1["椤舵爮鍦ㄧ嚎0/8 鍏ㄥ満鏅檷绾?杩涘叆绂荤嚎鍊煎畧妯″紡"]
+    D["鏂板憡璀︿骇鐢?] --> E{鐩爣鏉＄洰鐘舵€?}
+    E -->|鏈‘璁 F["鐩存帴缃《 姝ｅ父闂幆娴佺▼"]
+    E -->|宸叉姂鍒秥 G["鎶戝埗鍐茬獊鍒ゅ畾: 绛夌骇鈮ラ噸瑕佸己鍒跺敜閱掕嚦鏈‘璁?/ 绛夌骇<閲嶈绱璁℃暟寤跺悗鎻愰啋"]
+    E -->|宸查棴鐜瘄 H["鐢熸垚鍏宠仈鏂颁簨浠?涓嶅娲绘棫鍛婅"]
+    G --> I["鎶戝埗绐楀彛缁撴潫 缁熶竴鎭㈠鏈‘璁?]</pre></details>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <table class="spec-table">
+          <tr><th>鍦烘櫙</th><th>鍒ゅ畾鏉′欢</th><th>绌洪棿鍝嶅簲</th><th>闈㈡澘鍝嶅簲</th></tr>
+          <tr><td class="num">鍗曠珯閫氫俊涓柇</td><td>绔欐帶蹇冭烦瓒呮椂 120s</td><td>淇℃爣鍙樼伆锛岃剦鍐?瑙掓爣/閾捐矾娴佸悜绉婚櫎</td><td>鎸囨爣鍗°€屽揩鐓ф暟鎹€嶆爣娉紱杩涚珯 toast 鎻愮ず</td></tr>
+          <tr><td class="num">鍏ㄧ珯閫氫俊涓柇</td><td>闆嗙兢缃戝叧澶辫仈</td><td>鍏ㄥ満鏅伆闃堕檷绾э紝娴佸悜鍔ㄧ敾鍋滄</td><td>椤舵爮 0/8锛涢《閮ㄥ姛鐜囨樉绀恒€?-銆嶏紱鏍囬鎻愮ず绂荤嚎鍊煎畧</td></tr>
+          <tr><td class="num">鍛婅鎶戝埗鍐茬獊</td><td>鏂板憡璀﹁惤鐐逛负宸叉姂鍒惰澶?/td><td>鈥?/td><td>绱ф€?閲嶈寮哄埗鍞ら啋涓烘湭纭骞剁疆椤讹紱涓€鑸?鎻愮ず绱鍚庣粺涓€鎻愰啋</td></tr>
+          <tr><td class="num">閲嶅鍛婅</td><td>鍚岃澶囧悓绫诲瀷 5min 鍐?/td><td>鈥?/td><td>鍚堝苟璁℃暟锛埫桸锛夛紝涓嶉噸澶嶇疆椤?/td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 05 鑱斿姩 -->
+    <section class="sec" id="f5">
+      <div class="sec-hd"><span class="no">05</span><h2>璺ㄥ尯鑱斿姩瑙勫垯</h2><span class="tip">CONTEXT LINKAGE</span></div>
+      <div class="card">
+        <table class="spec-table">
+          <tr><th>瑙﹀彂婧?/th><th>绌洪棿鍝嶅簲锛?D锛?/th><th>鏁版嵁鍝嶅簲</th><th>璁板綍鍝嶅簲</th></tr>
+          <tr><td>鐐瑰嚮宸︿晶鐢电珯琛?/td><td>鍦板浘闀滃ご鎺ㄨ繎骞朵笅閽?L1</td><td>鍙充晶鎸囨爣 / 鍥捐〃鍒囨崲涓鸿绔?/td><td>闈㈠寘灞戞洿鏂帮紝琛岄€変腑鎬?/td></tr>
+          <tr><td>鐐瑰嚮鍛婅銆屽畾浣嶃€?/td><td>L1 鈫?L2 鈫?L3 鑷姩涓嬮捇骞堕€変腑璁惧</td><td>鎸囨爣鍒囨崲鑷崇皣绾?BMS</td><td>toast 鎻愮ず瀹氫綅缁撴灉</td></tr>
+          <tr><td>鐐瑰嚮 3D 绔欑偣淇℃爣</td><td>鑱氱劍 + 涓嬮捇 L1</td><td>鍚屼笂</td><td>宸︿晶鍒楄〃琛屽悓姝ラ€変腑</td></tr>
+          <tr><td>鍒囨崲绛栫暐</td><td>閾捐矾娴佸悜淇濇寔瀹炴椂鍔熺巼鏂瑰悜</td><td>璁″垝鏇茬嚎閲嶇畻</td><td>搴曢儴绐楀彛 / 鍔熺巼鏇存柊 + toast</td></tr>
+          <tr><td>鍥惧眰寮€鍏筹紙鍛婅/閾捐矾/鏍囨敞锛?/td><td>鑴夊啿鐜?/ 娴佸姩閾捐矾 / 鏍囨敞鐗屾樉闅?/td><td>鈥?/td><td>鈥?/td></tr>
+          <tr><td>瀹炴椂鏁版嵁甯э紙2.5s锛?/td><td>鏍囨敞鐗?SOC / 鍔熺巼鍒锋柊</td><td>鎸囨爣鍗′笌瓒嬪娍鍥惧閲忔洿鏂?/td><td>鐢电珯鍒楄〃 SOC / 寰芥爣鍒锋柊</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 06 杈圭晫 -->
+    <section class="sec" id="f6">
+      <div class="sec-hd"><span class="no">06</span><h2>杈圭晫涓庡紓甯告€?/h2><span class="tip">SPECS</span></div>
+      <div class="grid-2">
+        <div class="card">
+          <table class="spec-table">
+            <tr><th>鍦烘櫙</th><th>澶勭悊</th></tr>
+            <tr><td>杩囨浮鏈熼棿閲嶅鐐瑰嚮</td><td>杞満 280ms 鍐呭拷鐣ユ柊瀵艰埅锛坱ransitioning 閿侊級锛岄伩鍏嶅満鏅敊涔?/td></tr>
+            <tr><td>闀滃ご鍔ㄧ敾涓垏灞傜骇</td><td>杞満娣″嚭鍚庣敱鐩爣灞傜骇鐩告満鎺ョ锛屽姩鐢荤珛鍗冲け鏁?/td></tr>
+            <tr><td>鎮诞鎬佷笅鏁版嵁鍒锋柊</td><td>鍥捐〃鎮诞鏈熼棿鏆傚仠閲嶇粯锛岀Щ鍑哄悗涓嬩竴甯ф仮澶嶏紝閬垮厤娴眰闂儊</td></tr>
+            <tr><td>鏃犲憡璀︾瓫閫夌粨鏋?/td><td>鍙拌处鏄剧ず銆屾殏鏃犺绛夌骇鍛婅銆嶇┖鎬?/td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <table class="spec-table">
+            <tr><th>鍦烘櫙</th><th>澶勭悊</th></tr>
+            <tr><td>瓒呴暱鍛婅鏂囨湰</td><td>鏈€澶?2 琛屾埅鏂紝瀹屾暣淇℃伅鍦ㄦ偓娴?/ 璇︽儏涓煡鐪?/td></tr>
+            <tr><td>闈?16:9 鍒嗚鲸鐜?/td><td>鏁村睆绛夋瘮缂╂斁骞跺眳涓紝涓や晶鐣欓粦锛岀敾甯冩寜缂╂斁鍊嶇巼閲嶉噰鏍?/td></tr>
+            <tr><td>閿洏鎿嶄綔</td><td class="num">Esc锛氬叧闂娊灞?鈫?閫愮骇涓婃诞锛涗富閾捐矾鍏ㄩ儴鍙紶鏍囧畬鎴?/td></tr>
+            <tr><td>寮傚父婕旂ず</td><td class="num">index.html?anomaly=offline / multi / overtemp 涓夌寮傚父鎬佹紨绀?/td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="assets/vendor/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    securityLevel: 'loose',
+    themeVariables: {
+      darkMode: true,
+      background: '#0c1623',
+      primaryColor: '#101d2b',
+      primaryTextColor: '#d8e6f2',
+      primaryBorderColor: 'rgba(126,163,196,.45)',
+      lineColor: 'rgba(126,163,196,.55)',
+      secondaryColor: '#152634',
+      tertiaryColor: '#0f1b28',
+      noteBkgColor: '#152634',
+      noteTextColor: '#c2d3e3',
+      noteBorderColor: 'rgba(126,163,196,.35)',
+      fontFamily: '"HarmonyOS Sans SC","Microsoft YaHei",sans-serif',
+      fontSize: '12.5px'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true, padding: 10 }
+  });
+
+  const links = document.querySelectorAll('#navLinks a');
+  const secs = document.querySelectorAll('.sec');
+  const main = document.querySelector('.docs-main');
+  if (main && secs.length) {
+    main.addEventListener('scroll', () => {
+      let cur = 0;
+      secs.forEach((s, i) => { if (s.offsetTop - 40 <= main.scrollTop) cur = i; });
+      links.forEach((a, i) => a.classList.toggle('on', i === cur));
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>苏南区域储能电站集群 · 数字孪生调度大屏</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/components.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.2.3">
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- ============ 顶部通栏（v1.1：标题左对齐 + KPI 突出 + 图标操作收右） ============ -->
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <h1>苏南区域储能电站集群<em>·</em>调度值守大屏</h1>
+    </div>
+
+    <div class="tb-right">
+      <div class="tb-kpi">
+        <label>集群总装机</label>
+        <b>1,240<i>MWh</i></b>
+      </div>
+      <div class="tb-kpi">
+        <label>实时并网功率</label>
+        <b id="hdrPower">+186.4<i>MW</i></b>
+      </div>
+      <div class="tb-kpi">
+        <label>通信在线</label>
+        <b class="ok" id="hdrComm">8/8<i>站</i></b>
+      </div>
+      <div class="tb-clock">
+        <b id="clockTime">--:--:--</b>
+        <span id="clockDate">2026-11-05 周四</span>
+      </div>
+      <div class="nav-more" id="navMore">
+        <button class="tool icon" id="btnNavMore" title="更多：设计规范 / 交互流程 / 分层稿 / 方案叙事">☰</button>
+        <div class="nav-menu" id="navMenu" hidden>
+          <span class="ver">v1.2-prototype</span>
+          <a href="components.html">设计规范</a>
+          <a href="flow.html">交互流程</a>
+          <a href="mockups.html">分层稿</a>
+          <a href="story.html">方案叙事</a>
+          <div class="kbd-row"><kbd>Esc</kbd> 上钻 / 关闭抽屉　<kbd>Space</kbd> 暂停刷新　<kbd>C</kbd> 驾驶舱模式　<kbd>2D</kbd> 俯视</div>
+        </div>
+      </div>
+      <button class="tool icon" id="btnCockpit" title="驾驶舱模式：只留主视图与核心 KPI，适合投屏（快捷键 C，选择会被记住）" aria-label="切换驾驶舱模式">◱</button>
+      <button class="tool icon" id="btnCompact" title="紧凑密度：折叠底部策略条，扩大主视图（矮视口值守可开，选择会被记住）">⇅</button>
+      <span class="ver" id="scenarioTag" hidden style="color:#eebd85;border-color:rgba(223,138,46,.4)"></span>
+    </div>
+  </header>
+
+  <!-- ============ 左侧 ============ -->
+  <aside class="col-left">
+
+    <section class="panel" id="clusterPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>电站集群</h3>
+        <span class="hd-tag" id="stationCount">8 座</span>
+      </div>
+      <div class="panel-bd">
+        <div class="filter-row" id="stationFilters">
+          <button class="chip is-on" data-filter="all">全部 <i>8</i></button>
+          <button class="chip" data-filter="alert">告警 <i>3</i></button>
+          <button class="chip" data-filter="offline">离线 <i>1</i></button>
+        </div>
+        <div class="station-list scroll" id="stationList"></div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ============ 中间孪生主视区 ============ -->
+  <main class="col-center">
+    <section class="stage" id="stage">
+      <canvas id="twinCanvas"></canvas>
+      <div class="stage-veil" id="stageVeil"></div>
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+
+      <div class="hud hud-tl">
+        <div class="crumbs" id="crumbs"></div>
+      </div>
+
+      <div class="hud hud-tr">
+        <div class="tool-group" id="layerToggles">
+          <button class="tool is-on" data-layer="alert">告警</button>
+          <button class="tool is-on" data-layer="link">链路</button>
+          <button class="tool is-on" data-layer="label">标注</button>
+        </div>
+        <button class="tool icon" id="btnTopView" title="俯视 / 透视">2D</button>
+        <button class="tool icon" id="btnReset" title="复位视窗">↺</button>
+      </div>
+
+      <div class="stage-card" id="stageCard" hidden></div>
+
+      <div class="hud hud-bl legend">
+        <span class="lg-title">状态</span>
+        <span class="lg-item"><i style="background:#3ea87b"></i>正常运行</span>
+        <span class="lg-item"><i style="background:#dfab52"></i>放电中</span>
+        <span class="lg-item"><i style="background:#e0523f"></i>告警</span>
+        <span class="lg-item"><i style="background:#5b6b7a"></i>离线</span>
+      </div>
+
+      <div class="hud hud-br">
+        <span id="camInfo">拖拽旋转 · 滚轮缩放 · 右键平移</span>
+      </div>
+
+      <div class="twin-tip" id="twinTip"></div>
+    </section>
+  </main>
+
+  <!-- ============ 右侧（v1.1 黄金三角：指标 → 告警台账 → 趋势） ============ -->
+  <aside class="col-right">
+
+    <section class="panel" id="metricsPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>核心指标</h3>
+        <span class="hd-tag scope" id="metricScope">区域集群</span>
+        <button class="link-btn" id="btnScopeBack" hidden>返回集群</button>
+      </div>
+      <div class="panel-bd">
+        <div class="metric-grid" id="metricGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="alertPanel">
+      <div class="panel-hd">
+        <span class="bar crit"></span>
+        <h3>告警台账</h3>
+        <span class="hd-tag crit" id="alertOpen">未闭环 6</span>
+        <span class="meta">按优先级排序</span>
+        <button class="link-btn" id="btnAlertCsv" title="导出当前告警台账（模拟）">导出 CSV</button>
+      </div>
+      <div class="panel-bd">
+        <div class="filter-row" id="alertFilters"></div>
+        <div class="alert-list scroll" id="alertList" role="list"></div>
+      </div>
+    </section>
+
+    <section class="panel folded" id="chartsPanel">
+      <div class="panel-hd">
+        <span class="bar"></span>
+        <h3>趋势分析</h3>
+        <div class="chart-tabs" id="chartTabs">
+          <button class="on" data-tab="power">功率</button>
+          <button data-tab="soc">SOC</button>
+        </div>
+        <span class="meta" id="chartMeta">计划 vs 实际</span>
+        <button class="link-btn" id="btnChartMore" title="展开温度 / 健康度明细图">明细 ▸</button>
+      </div>
+      <div class="panel-bd chart-body">
+        <div class="chart-main">
+          <div class="chart-title">
+            <span id="mainChartTitle">并网功率 · 计划 / 实际</span>
+            <span class="lg"><i class="lg-plan"></i>计划<i class="lg-act"></i>实际</span>
+          </div>
+          <div class="chart-box" id="chartMain"></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-mini">
+            <div class="chart-title"><span id="tempChartTitle">设备温度</span><span class="unit">℃</span></div>
+            <div class="chart-box" id="chartTemp"></div>
+          </div>
+          <div class="chart-mini">
+            <div class="chart-title"><span id="healthChartTitle">电池簇健康度</span><span class="unit">簇</span></div>
+            <div class="chart-box" id="chartHealth"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- ============ 底部辅助栏 ============ -->
+  <footer class="bottombar">
+
+    <div class="bb">
+      <div class="bb-hd">调度策略<span class="tag ok" id="stratState">执行中</span></div>
+      <div class="seg" id="strategySeg">
+        <button class="on" data-strategy="peak">削峰填谷</button>
+        <button data-strategy="freq">调频响应</button>
+        <button data-strategy="reserve">自主备用</button>
+      </div>
+      <div class="strat-info">
+        <span id="stratWindow">低谷充电 23:30–06:30 / 晚峰放电 17:30–21:00</span>
+        <b id="stratPower">-108.6 MW</b>
+      </div>
+    </div>
+
+    <div class="bb">
+      <div class="bb-hd">通信链路<span class="tag ok">4/4 正常</span></div>
+      <div class="comm-list" id="commList"></div>
+    </div>
+
+    <div class="bb">
+      <div class="bb-hd">设备在线率</div>
+      <div class="on-wrap">
+        <span class="donut" id="onlineDonut" style="--p:98.6"></span>
+        <b id="onlineRate">98.6<i>%</i></b>
+        <span class="on-legend" id="onLegend">
+          <span><i style="background:#3ea87b"></i>PCS</span>
+          <span><i style="background:#3fb6c9"></i>BMS</span>
+          <span><i style="background:#5e8fbb"></i>EMS</span>
+          <span><i style="background:#d8b24a"></i>消防</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="bb ai-block">
+      <div class="bb-hd">AI 辅助决策<span class="tag acc">在线</span><button class="link-btn" id="btnAiDrawer">展开 ›</button></div>
+      <div class="ai-lines" id="aiLines"></div>
+    </div>
+
+  </footer>
+
+  <!-- ============ 演示导览面板（收口演示用，不破坏值守视图） ============ -->
+  <button class="demo-fab" id="demoFab">演示导览 ▸</button>
+  <div class="demo-panel" id="demoPanel" hidden>
+    <div class="dp-hd">演示导览<span id="demoClose" title="收起">×</span></div>
+    <div class="dp-sec">
+      <label>视图下钻</label>
+      <div class="dp-row c4">
+        <button data-dp-go="L0">L0 集群</button>
+        <button data-dp-go="L1">L1 锡山</button>
+        <button data-dp-go="L2">L2 2#舱</button>
+        <button data-dp-go="L3">L3 簇</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>异常工况</label>
+      <div class="dp-row c4">
+        <button data-dp-sc="">正常</button>
+        <button data-dp-sc="offline">离线</button>
+        <button data-dp-sc="multi">多告警</button>
+        <button data-dp-sc="overtemp">超温</button>
+        <button data-dp-linkdown>数据源断开</button>
+        <button data-dp-lite>性能轻量化</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>角色权限预览（UI 演示）</label>
+      <div class="dp-row c4">
+        <button data-dp-role="admin">管理员</button>
+        <button data-dp-role="dispatcher">调度员</button>
+        <button data-dp-role="inspector">运维巡检</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>快照回放（本地存储演示）</label>
+      <div class="dp-row">
+        <button data-dp-snap-save>保存当前快照</button>
+        <div class="dp-snaps" id="dpSnapList"></div>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>调度策略</label>
+      <div class="dp-row">
+        <button data-dp-strategy="peak">削峰填谷</button>
+        <button data-dp-strategy="freq">调频响应</button>
+        <button data-dp-strategy="reserve">自主备用</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>标注模式（对应分层稿三色）</label>
+      <div class="dp-row c4">
+        <button data-dp-anno="static">静态层</button>
+        <button data-dp-anno="fx">动效层</button>
+        <button data-dp-anno="hot">热区</button>
+        <button data-dp-anno="all">全部</button>
+      </div>
+    </div>
+    <div class="dp-sec">
+      <label>落地材料</label>
+      <div class="dp-row">
+        <button data-dp-doc="feasibility.md">查看落地说明 →</button>
+        <button data-dp-doc="requirement-trace.md">需求追踪表 →</button>
+        <button data-dp-doc="field-map.md">字段映射表 →</button>
+        <button data-dp-doc="benchmark.md">性能实测报告 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全局标注覆盖层（1920×1080 设计坐标，与分层稿像素对齐） -->
+  <div class="anno-layer" id="annoLayer"></div>
+
+</div>
+
+<!-- AI 决策抽屉 -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="aiDrawer" aria-hidden="true">
+  <div class="drawer-hd">
+    <div>
+      <b>AI 辅助决策</b>
+      <span>根因推理 · 收益评估 · 策略建议</span>
+    </div>
+    <button class="icon-btn" id="drawerClose" aria-label="关闭">×</button>
+  </div>
+  <div class="drawer-bd scroll" id="drawerBody"></div>
+</aside>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/twin.js"></script>
+<script src="assets/js/scenes.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
