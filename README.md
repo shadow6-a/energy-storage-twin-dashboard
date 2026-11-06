@@ -1,8 +1,15 @@
 # 储能电站集群 · 数字孪生调度大屏
 
-![tests](https://img.shields.io/badge/tests-47%2F47%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.2--prototype-orange)
+![tests](https://img.shields.io/badge/tests-61%2F61%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.3--prototype-orange)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（零三方库），Playwright + PowerShell 回归门禁全程护栏。
+
+## 值守处置闭环（v1.3）
+
+- **告警批量处置**：面板头「批量」进入多选态 → 勾选多条 → 一次确认 / 闭环；批量态用操作条替换筛选行（高度零净增，720p 列表不被挤扁），行内单条按钮收起防误触
+- **撤销**：`Ctrl+Z` 回退最近一次处置（处置栈 20 条，单条与批量统一入口），撤销本身也写审计
+- **操作审计留痕**：审计抽屉记录「时间 / 角色 / 动作 / 对象 / 结果」，覆盖确认、闭环、批量处置、撤销、策略下发、角色切换；localStorage 留存最近 200 条，菜单项带条数徽标，可导出 CSV
+- **边界**：审计为**前端演示态**（浏览器本地存储、可被清空），生产环境需后端审计表 + 账号绑定 + 不可篡改存储（见 `feasibility.md`）
 
 ## 演示动图（待录制）
 
@@ -11,6 +18,7 @@
 ## 免责边界
 
 - 当前版本**仅提供深色主题**（工业值守标准）；浅色报表主题已在设计系统 tokens 中预留扩展位（色彩令牌集中管理），可依据后续需求立项开发
+- **已知问题**：`components.html` / `flow.html` / `mockups.html` / `story.html` 四个子页中文仍为 v1.2.2 编码事故遗留乱码（结构与样式完好）；`mockups.html` 另有内联脚本被连带破坏（乱码吃掉字符串闭合引号 → `Invalid or unexpected token`，分层标注不渲染）。已探测出 CP936 逆转换可恢复约 99% 文案（剩余约 200 字符/页为编码时 best-fit 丢失，需人工补字），恢复方案见 CHANGELOG v1.3.0「下一步」
 - 完整边界声明见 `story.html` §05（版本定位 / 权限 / 审计 / 合规等 7 项）
 
 ## 核心差异化：可以被测试的大屏
@@ -31,7 +39,7 @@
 powershell -ExecutionPolicy Bypass -File tests/regression.ps1
 ```
 
-覆盖：溢出/滚动、字号档位、断点归属、ARIA 角色、密度开关、驾驶舱模式、console error 清零。
+覆盖：溢出/滚动、字号档位、断点归属、ARIA 角色、密度开关、驾驶舱模式、批量处置与撤销、审计留痕与持久化、console error 清零（61 条断言）。
 
 ## 运行
 
@@ -44,12 +52,15 @@ python -m http.server 8796   # 根目录起静态服务
 
 | 键 | 行为 |
 |---|---|
-| `Esc` | 上钻一级 / 关闭 AI 抽屉 |
+| `Esc` | 退出审计 / 退出批量模式 / 上钻一级 / 关闭 AI 抽屉（按优先级） |
 | `Space` | 暂停 / 恢复实时刷新 |
 | `C` | 驾驶舱模式（投屏态：仅主视图 + 顶栏 KPI，localStorage 记忆） |
+| `A` | 打开 / 关闭操作审计抽屉 |
+| `Ctrl+Z` | 撤销最近一次告警处置（单条或批量） |
 
 ## 版本里程碑
 
+- **v1.3** · 告警批量处置（多选 / 批量确认 / 批量闭环）、Ctrl+Z 撤销、操作审计留痕（抽屉 + 200 条本地留存 + CSV）、抽屉遮罩统一（修 FAB 层级）
 - **v1.2** · 标签屏幕空间碰撞避让（滞后阈值 + 引线 + 优先级）、驾驶舱模式、CSS 缓存治理（link 版本参数）
 - **v1.1.x** · 视觉走查三轮：顶栏重构 / 黄金三角信息架构 / 顶栏 KPI 分隔线 / 告警行紧凑制 / SOC 分色进度条 / <13px 清扫 / 快捷键
 - **v1.0** · 门禁体系闭环（期望表 + 变异 + 留痕 + 证据 + 退出码）

@@ -45,11 +45,14 @@
     links.push({ from:{x:-560,z:-255}, to:{x:-300,z:-292}, solid:true, color:'rgba(56,104,136,.16)', width:7, y:0.2 });
     links.push({ from:{x:-300,z:-292}, to:{x:60,z:-320}, solid:true, color:'rgba(56,104,136,.16)', width:7, y:0.2 });
     links.push({ from:{x:60,z:-320}, to:{x:430,z:-268}, solid:true, color:'rgba(56,104,136,.16)', width:7, y:0.2 });
-    links.push({ from:{x:-470,z:60}, to:{x:-120,z:20}, solid:true, color:'rgba(126,163,196,.10)', width:2, y:0.2 });
-    links.push({ from:{x:-120,z:20}, to:{x:180,z:60}, solid:true, color:'rgba(126,163,196,.10)', width:2, y:0.2 });
-    links.push({ from:{x:180,z:60}, to:{x:470,z:120}, solid:true, color:'rgba(126,163,196,.10)', width:2, y:0.2 });
 
     // 汇集点
+    /* v1.2.2：骨干线（站→汇集点）此前 0.26 透明度在深色底上几乎不可见，拓扑读起来像散点图；
+       提升到 0.42 + 加宽一档，让「同一网架汇聚」的集群叙事成立 */
+    links.push({ from:{x:-470,z:60}, to:{x:-120,z:20}, solid:true, color:'rgba(126,163,196,.18)', width:2, y:0.2 });
+    links.push({ from:{x:-120,z:20}, to:{x:180,z:60}, solid:true, color:'rgba(126,163,196,.18)', width:2, y:0.2 });
+    links.push({ from:{x:180,z:60}, to:{x:470,z:120}, solid:true, color:'rgba(126,163,196,.18)', width:2, y:0.2 });
+
     objects.push({
       kind:'pin', id:'HUB', pos:{ x:HUB.x, y:0, z:HUB.z }, headY:52, radius:22,
       color:'#5e8fbb', label:'区域并网汇集点',
@@ -85,7 +88,7 @@
           to: { x: HUB.x, z: HUB.z },
           flow: st.comm === 'offline' ? 0 : (st.power >= 0 ? 1 : -1),
           width: 0.8 + Math.min(1.4, Math.abs(st.power) / 70),
-          color: st.comm === 'offline' ? 'rgba(91,107,122,.16)' : 'rgba(94,143,187,.26)',
+          color: st.comm === 'offline' ? 'rgba(91,107,122,.2)' : 'rgba(120,182,220,.42)',
           dot: 'rgba(140,220,235,.5)'
         });
       }

@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>苏南区域储能电站集群 · 数字孪生调度大屏</title>
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-<link rel="stylesheet" href="assets/css/tokens.css?v=1.2.3">
-<link rel="stylesheet" href="assets/css/components.css?v=1.2.3">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=1.2.3">
+<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.0">
+<link rel="stylesheet" href="assets/css/components.css?v=1.3.0">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.0">
 </head>
 <body>
 
@@ -40,12 +40,13 @@
       <div class="nav-more" id="navMore">
         <button class="tool icon" id="btnNavMore" title="更多：设计规范 / 交互流程 / 分层稿 / 方案叙事">☰</button>
         <div class="nav-menu" id="navMenu" hidden>
-          <span class="ver">v1.2-prototype</span>
+          <span class="ver">v1.3-prototype</span>
+          <a href="#" id="navAudit" role="button">操作审计 <i class="n" id="auditCount">0</i></a>
           <a href="components.html">设计规范</a>
           <a href="flow.html">交互流程</a>
           <a href="mockups.html">分层稿</a>
           <a href="story.html">方案叙事</a>
-          <div class="kbd-row"><kbd>Esc</kbd> 上钻 / 关闭抽屉　<kbd>Space</kbd> 暂停刷新　<kbd>C</kbd> 驾驶舱模式　<kbd>2D</kbd> 俯视</div>
+          <div class="kbd-row"><kbd>Esc</kbd> 上钻 / 关闭　<kbd>Space</kbd> 暂停　<kbd>C</kbd> 驾驶舱　<kbd>A</kbd> 审计　<kbd>Ctrl+Z</kbd> 撤销</div>
         </div>
       </div>
       <button class="tool icon" id="btnCockpit" title="驾驶舱模式：只留主视图与核心 KPI，适合投屏（快捷键 C，选择会被记住）" aria-label="切换驾驶舱模式">◱</button>
@@ -135,12 +136,19 @@
         <span class="bar crit"></span>
         <h3>告警台账</h3>
         <span class="hd-tag crit" id="alertOpen">未闭环 6</span>
-        <span class="meta">按优先级排序</span>
+        <button class="al-tool" id="btnAlertBatch" aria-pressed="false" title="批量处置：勾选多条告警后一次性确认 / 闭环（交接班批量清理）">批量</button>
         <button class="link-btn" id="btnAlertCsv" title="导出当前告警台账（模拟）">导出 CSV</button>
       </div>
       <div class="panel-bd">
         <div class="filter-row" id="alertFilters"></div>
-        <div class="alert-list scroll" id="alertList" role="list"></div>
+        <div class="alert-batch-bar" id="alertBatchBar" hidden>
+          <span class="ab-count" id="abCount">已选 0 条</span>
+          <button class="ab-btn" data-batch="ack" title="批量确认所选告警（未确认 → 已确认）">确认</button>
+          <button class="ab-btn" data-batch="close" title="批量闭环所选告警（未闭环 → 已闭环）">闭环</button>
+          <button class="ab-btn ghost" data-batch="undo" title="撤销最近一次处置（Ctrl+Z）">撤销</button>
+          <button class="ab-btn ghost" data-batch="cancel" title="退出批量模式（Esc）">取消</button>
+        </div>
+        <div class="alert-list scroll" id="alertList" role="list" title="按优先级排序：未确认 > 已确认 > 已闭环"></div>
       </div>
     </section>
 
@@ -253,6 +261,13 @@
       </div>
     </div>
     <div class="dp-sec">
+      <label>操作留痕（v1.3）</label>
+      <div class="dp-row">
+        <button data-dp-batch>批量处置告警</button>
+        <button data-dp-audit>打开操作审计</button>
+      </div>
+    </div>
+    <div class="dp-sec">
       <label>快照回放（本地存储演示）</label>
       <div class="dp-row">
         <button data-dp-snap-save>保存当前快照</button>
@@ -303,6 +318,18 @@
     <button class="icon-btn" id="drawerClose" aria-label="关闭">×</button>
   </div>
   <div class="drawer-bd scroll" id="drawerBody"></div>
+</aside>
+
+<!-- 操作审计抽屉（v1.3：角色 · 动作 · 对象 · 结果，本地留存最近 200 条） -->
+<aside class="drawer audit-drawer" id="auditDrawer" aria-hidden="true" aria-label="操作审计">
+  <div class="drawer-hd">
+    <div>
+      <b>操作审计</b>
+      <span>告警处置 · 策略下发 · 角色切换 · 撤销（本地留存）</span>
+    </div>
+    <button class="icon-btn" id="auditClose" aria-label="关闭">×</button>
+  </div>
+  <div class="drawer-bd scroll" id="auditBody" role="log" aria-live="polite" aria-relevant="additions"></div>
 </aside>
 
 <div class="toast-wrap" id="toasts"></div>

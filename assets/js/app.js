@@ -45,7 +45,10 @@
     topView: false,
     transitioning: false,
     focusing: false,
-    tickCount: 0
+    tickCount: 0,
+    /* v1.3：告警批量处置（多选态 + 已勾选集合） */
+    batch: false,
+    picked: new Set()
   };
 
   let twin = null;
@@ -260,6 +263,7 @@
 
   function renderAlerts() {
     renderAlertFilters();
+    renderBatchBar();
     const open = DATA.ALERTS.filter(a => a.status < 2).length;
     $('#alertOpen').textContent = '未闭环 ' + open;
 
@@ -282,7 +286,11 @@
         : a.status === 1
           ? `<button class="al-act" data-act="close" data-id="${a.id}" title="闭环告警" aria-label="闭环该${a.lvName}告警">✓</button>`
           : '';
-      return `<div class="al-row ${a.lv} ${a.status >= 2 ? 'done' : ''}" data-id="${a.id}" role="listitem" aria-label="${a.lvName}告警，${statusTxt}，${a.text}">
+      /* v1.3：批量模式下整行即勾选项（操作按钮由 CSS 收起），勾选态写进 aria-label 尾部
+         —— 保持「等级告警，状态，全文」前缀不变，回归脚本的 aria-label 断言继续有效 */
+      const picked = state.batch && state.picked.has(a.id);
+      return `<div class="al-row ${a.lv} ${a.status >= 2 ? 'done' : ''}${picked ? ' picked' : ''}" data-id="${a.id}" role="listitem" aria-label="${a.lvName}告警，${statusTxt}，${a.text}${picked ? '，已勾选' : ''}">
+        ${state.batch ? '<span class="al-check" aria-hidden="true"></span>' : ''}
         <div class="al-top">
           <span class="lv-tag ${a.lv}">${a.lvName}</span>
           <span class="al-time">${timeAgo(a.age)}</span>
@@ -300,6 +308,185 @@
       rows.push(`<button class="al-more" data-act="limit">${state.alertLimit === 5 ? '查看全部 ' + arr.length + ' 条 ›' : '▴ 收起，只看最新 5 条'}</button>`);
     }
     host.innerHTML = rows.join('') || `<div class="al-empty" role="status"><b>系统运行平稳</b>暂无${state.alertFilter === 'open' ? '未闭环' : '该等级'}告警</div>`;
+  }
+
+  /* ================= v1.3 告警批量处置 + 操作审计 ================= */
+  const AUDIT_KEY = 'uiAuditLog';
+  const AUDIT_MAX = 200;          /* 本地留存上限，超出淘汰最旧（与 WS 告警池同策略） */
+  const ROLE_NAME = { admin: '管理员', dispatcher: '调度员', inspector: '运维巡检' };
+  let auditLog = [];
+  let undoStack = [];             /* 处置撤销栈（内存态，刷新即清空——与告警状态生命周期一致） */
+
+  function auditLoad() {
+    try { auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]'); } catch (e) { auditLog = []; }
+    if (!Array.isArray(auditLog)) auditLog = [];
+    auditLog = auditLog.slice(-AUDIT_MAX);
+    const n = $('#auditCount');
+    if (n) n.textContent = auditLog.length;
+  }
+  function auditSave() {
+    try { localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog.slice(-AUDIT_MAX))); } catch (e) { /* 隐私模式忽略 */ }
+  }
+  function hms() {
+    const d = new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+  function auditAdd(act, target, result) {
+    auditLog.push({ t: hms(), role: state.role, act, target, result });
+    if (auditLog.length > AUDIT_MAX) auditLog = auditLog.slice(-AUDIT_MAX);
+    auditSave();
+    const n = $('#auditCount');
+    if (n) n.textContent = auditLog.length;
+    if ($('#auditDrawer').classList.contains('on')) renderAudit();
+  }
+
+  function renderAudit() {
+    const body = $('#auditBody');
+    if (!body) return;
+    const rows = auditLog.slice().reverse().map(e => `<div class="au-row" role="listitem">
+        <div class="au-l1">
+          <span class="au-t">${e.t || '--:--:--'}</span>
+          <span class="au-role r-${e.role || 'admin'}">${ROLE_NAME[e.role] || e.role || '未知'}</span>
+          <span class="au-act">${e.act || ''}</span>
+          <span class="au-res">${e.result || ''}</span>
+        </div>
+        <div class="au-obj" title="${e.target || ''}">${e.target || ''}</div>
+      </div>`).join('');
+    body.innerHTML = `
+      <div class="au-hd">
+        <span>共 <b>${auditLog.length}</b> 条 · 本地留存最近 ${AUDIT_MAX} 条</span>
+        <button class="link-btn" data-audit-act="csv">导出 CSV</button>
+        <button class="link-btn" data-audit-act="clear">清空</button>
+      </div>
+      <div class="au-list" role="list">${rows || `<div class="al-empty" role="status"><b>暂无操作记录</b>告警确认 / 闭环 / 撤销 / 策略下发均会留痕</div>`}</div>`;
+  }
+
+  /* 两个抽屉共用一个遮罩：任一打开即锁滚动、隐藏演示 FAB（否则 z-index 421 的 FAB 会压在抽屉上） */
+  function syncDrawerMask() {
+    const any = $('#aiDrawer').classList.contains('on') || $('#auditDrawer').classList.contains('on');
+    $('#scrim').classList.toggle('on', any);
+    document.body.classList.toggle('drawer-open', any);
+    document.body.style.overflow = any ? 'hidden' : '';
+  }
+
+  function openAudit() {
+    renderAudit();
+    $('#auditDrawer').classList.add('on');
+    $('#auditDrawer').setAttribute('aria-hidden', 'false');
+    $('#navMenu').hidden = true;
+    syncDrawerMask();
+  }
+  function closeAudit() {
+    $('#auditDrawer').classList.remove('on');
+    $('#auditDrawer').setAttribute('aria-hidden', 'true');
+    syncDrawerMask();
+  }
+
+  function exportAuditCsv() {
+    if (!auditLog.length) { toast('暂无可导出的审计记录', 'warn'); return; }
+    const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const lines = ['时间,角色,动作,对象,结果'];
+    auditLog.forEach(e => lines.push([
+      e.t, ROLE_NAME[e.role] || e.role || '', esc(e.act), esc(e.target), esc(e.result)
+    ].join(',')));
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '操作审计_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast('已导出 ' + auditLog.length + ' 条审计记录（模拟，上线对接后端审计接口）');
+  }
+
+  /* 处置后的统一刷新（告警 / 站点 / 指标 / 底栏四处联动） */
+  function afterAlertChange() {
+    refreshLive();
+    renderAlerts();
+    renderStations();
+    renderMetrics();
+    renderBottom();
+  }
+
+  function pushUndo(label, items) {
+    undoStack.push({ label, items });
+    if (undoStack.length > 20) undoStack.shift();
+  }
+
+  /* 单条处置：状态变更 + 撤销栈 + 审计留痕，三件事一处完成（批量也走这里的状态机语义） */
+  function setAlertStatus(a, to, actName, silent) {
+    if (!a || a.status === to) return false;
+    const from = a.status;
+    a.status = to;
+    pushUndo(actName + ' ' + a.id, [{ id: a.id, from, to }]);
+    auditAdd(actName, a.id + ' · ' + String(a.text || '').slice(0, 20), '成功');
+    afterAlertChange();
+    if (!silent) toast(actName + ' · ' + a.id + (undoStack.length ? '（Ctrl+Z 可撤销）' : ''));
+    return true;
+  }
+
+  function renderBatchBar() {
+    const bar = $('#alertBatchBar');
+    if (!bar) return;
+    bar.hidden = !state.batch;
+    $('#alertPanel').classList.toggle('batch', state.batch);
+    const btn = $('#btnAlertBatch');
+    if (btn) {
+      btn.classList.toggle('is-on', state.batch);
+      btn.setAttribute('aria-pressed', state.batch ? 'true' : 'false');
+    }
+    const cnt = $('#abCount');
+    if (cnt) cnt.textContent = '已选 ' + state.picked.size + ' 条';
+  }
+
+  function toggleBatch(on) {
+    state.batch = on === undefined ? !state.batch : on;
+    state.picked.clear();
+    renderAlerts();
+    if (state.batch) toast('批量模式 · 勾选告警后可一次性确认 / 闭环（Esc 退出）');
+    else if (on === false) toast('已退出批量模式');
+  }
+
+  function pickAlert(id) {
+    if (state.picked.has(id)) state.picked.delete(id);
+    else state.picked.add(id);
+    renderAlerts();
+  }
+
+  function applyBatch(kind) {
+    const ids = Array.from(state.picked);
+    if (!ids.length) { toast('请先勾选告警', 'warn'); return; }
+    const actName = kind === 'ack' ? '批量确认' : '批量闭环';
+    const items = [];
+    ids.forEach(id => {
+      const a = DATA.ALERTS.find(x => x.id === id);
+      if (!a) return;
+      const from = a.status;
+      const to = kind === 'ack' ? (from === 0 ? 1 : from) : (from < 2 ? 2 : from);
+      if (to === from) return;
+      a.status = to;
+      items.push({ id, from, to });
+    });
+    if (!items.length) {
+      toast('所选告警当前状态无需' + (kind === 'ack' ? '确认' : '闭环'), 'warn');
+      return;
+    }
+    pushUndo(actName, items);
+    auditAdd(actName, items.length + ' 条告警（' + items.map(i => i.id).join('、') + '）', '成功');
+    state.picked.clear();
+    afterAlertChange();
+    toast(actName + '完成 · ' + items.length + ' 条（Ctrl+Z 可撤销）');
+  }
+
+  function undoLast() {
+    const rec = undoStack.pop();
+    if (!rec) { toast('没有可撤销的处置操作', 'warn'); return; }
+    rec.items.forEach(it => {
+      const a = DATA.ALERTS.find(x => x.id === it.id);
+      if (a) a.status = it.from;
+    });
+    auditAdd('撤销', rec.label + ' · ' + rec.items.length + ' 条', '已恢复原状态');
+    afterAlertChange();
+    toast('已撤销：' + rec.label + '（' + rec.items.length + ' 条）', 'ok');
   }
 
   /* ================= 指标 ================= */
@@ -907,6 +1094,8 @@
     renderStrategy();
     renderCharts();
     const s = STRATEGY[key];
+    /* v1.3：策略下发属调度操作，纳入审计留痕（交接班/复盘可查） */
+    auditAdd('策略下发', s.name, '成功');
     toast('调度策略切换为「' + s.name + '」· ' + s.note);
   }
 
@@ -1024,6 +1213,7 @@
     });
     $('#btnAiDrawer').disabled = false;
     demoSync();
+    auditAdd('角色切换', names[role] || role, '生效');
     toast('角色预览：' + names[role] + (insp ? ' · 策略下发已按权限灰化' : ' · 全功能可用'));
   }
 
@@ -1124,6 +1314,17 @@
       const doc = e.target.closest('[data-dp-doc]');
       if (doc) { window.open(doc.dataset.dpDoc, '_blank'); return; }
       if (e.target.closest('[data-dp-linkdown]')) { setLinkDown(!state.linkDown); return; }
+      /* v1.3：从演示导览进入批量处置 / 操作审计（先收面板，再开目标态） */
+      if (e.target.closest('[data-dp-batch]')) {
+        $('#demoClose').click();
+        if (!state.batch) toggleBatch(true);
+        return;
+      }
+      if (e.target.closest('[data-dp-audit]')) {
+        $('#demoClose').click();
+        openAudit();
+        return;
+      }
       const lite = e.target.closest('[data-dp-lite]');
       if (lite) {
         twin.lightweight = !twin.lightweight;
@@ -1298,14 +1499,12 @@
     $('#drawerBody').innerHTML = drawerHTML();
     $('#aiDrawer').classList.add('on');
     $('#aiDrawer').setAttribute('aria-hidden', 'false');
-    $('#scrim').classList.add('on');
-    document.body.style.overflow = 'hidden';
+    syncDrawerMask();
   }
   function closeDrawer() {
     $('#aiDrawer').classList.remove('on');
     $('#aiDrawer').setAttribute('aria-hidden', 'true');
-    $('#scrim').classList.remove('on');
-    document.body.style.overflow = '';
+    syncDrawerMask();
   }
 
   /* ================= 布局适配 ================= */
@@ -1356,25 +1555,50 @@
       const a = DATA.ALERTS.find(x => x.id === row.dataset.id);
       if (!a) return;
 
+      /* v1.3：批量模式下整行即勾选项（行内操作按钮由 CSS 收起，避免「勾选」与「处置」误触） */
+      if (state.batch) {
+        e.stopPropagation();
+        pickAlert(a.id);
+        return;
+      }
+
       if (act) {
         const kind = act.dataset.act;
         e.stopPropagation();
-        if (kind === 'ack') {
-          a.status = 1;
-          refreshLive();
-          renderAlerts(); renderStations(); renderMetrics(); renderBottom();
-          toast('告警已确认 · ' + a.id);
-        } else if (kind === 'close') {
-          a.status = 2;
-          refreshLive();
-          renderAlerts(); renderStations(); renderMetrics(); renderBottom();
-          toast('告警已闭环 · ' + a.id);
-        } else if (kind === 'locate') {
-          focusAlert(a);
-        }
+        if (kind === 'ack') setAlertStatus(a, 1, '确认告警');
+        else if (kind === 'close') setAlertStatus(a, 2, '闭环告警');
+        else if (kind === 'locate') focusAlert(a);
         return;
       }
       focusAlert(a);
+    });
+
+    /* v1.3：批量处置工具条 */
+    $('#btnAlertBatch').addEventListener('click', () => toggleBatch());
+    $('#alertBatchBar').addEventListener('click', e => {
+      const btn = e.target.closest('[data-batch]');
+      if (!btn) return;
+      const kind = btn.dataset.batch;
+      if (kind === 'ack' || kind === 'close') applyBatch(kind);
+      else if (kind === 'undo') undoLast();
+      else if (kind === 'cancel') toggleBatch(false);
+    });
+
+    /* v1.3：操作审计抽屉 */
+    $('#navAudit').addEventListener('click', e => { e.preventDefault(); openAudit(); });
+    $('#auditClose').addEventListener('click', closeAudit);
+    $('#auditBody').addEventListener('click', e => {
+      const btn = e.target.closest('[data-audit-act]');
+      if (!btn) return;
+      if (btn.dataset.auditAct === 'csv') exportAuditCsv();
+      if (btn.dataset.auditAct === 'clear') {
+        auditLog = [];
+        auditSave();
+        renderAudit();
+        const n = $('#auditCount');
+        if (n) n.textContent = '0';
+        toast('审计记录已清空（演示环境本地清理）', 'warn');
+      }
     });
 
     $('#strategySeg').addEventListener('click', e => {
@@ -1487,7 +1711,7 @@
 
     $('#btnAiDrawer').addEventListener('click', openDrawer);
     $('#drawerClose').addEventListener('click', closeDrawer);
-    $('#scrim').addEventListener('click', closeDrawer);
+    $('#scrim').addEventListener('click', () => { closeDrawer(); closeAudit(); });
 
     $('#drawerBody').addEventListener('click', e => {
       const btn = e.target.closest('[data-ai]');
@@ -1506,7 +1730,9 @@
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        if ($('#aiDrawer').classList.contains('on')) closeDrawer();
+        if ($('#auditDrawer').classList.contains('on')) closeAudit();
+        else if (state.batch) toggleBatch(false);
+        else if ($('#aiDrawer').classList.contains('on')) closeDrawer();
         else goUp();
       }
       /* v1.1.1：Space 暂停/恢复实时刷新（值守键盘流；输入框/按钮聚焦时不拦截，避免吞掉按钮的空格激活） */
@@ -1521,6 +1747,16 @@
         try { localStorage.setItem('uiCockpit', cockpitOn ? '1' : '0'); } catch (err) {}
         applyCockpit(cockpitOn);
         toast(cockpitOn ? '驾驶舱模式 · 按 C 退出' : '已退出驾驶舱模式');
+      }
+      /* v1.3：A 开关操作审计抽屉 */
+      if ((e.key === 'a' || e.key === 'A') && !e.repeat && !e.ctrlKey && !e.altKey && !e.metaKey && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) {
+        if ($('#auditDrawer').classList.contains('on')) closeAudit();
+        else openAudit();
+      }
+      /* v1.3：Ctrl+Z / Cmd+Z 撤销最近一次告警处置（拦截浏览器默认撤销语义） */
+      if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && !/INPUT|TEXTAREA/.test(e.target.tagName)) {
+        e.preventDefault();
+        undoLast();
       }
     });
 
@@ -1567,6 +1803,7 @@
 
   function start() {
     fitScreen();
+    auditLoad();          /* v1.3：先读本地审计记录，再渲染（菜单计数与抽屉一致） */
     applyScenarioFromURL();
     refreshLive();
 

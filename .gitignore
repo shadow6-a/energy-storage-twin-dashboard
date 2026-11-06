@@ -1,0 +1,2 @@
+# Playwright CLI 运行时产物（控制台日志 / 会话缓存），不入库
+.playwright-cli/

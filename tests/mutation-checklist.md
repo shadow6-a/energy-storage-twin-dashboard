@@ -16,6 +16,10 @@
 | 6 | 告警行去掉 `display:contents`（720 档单行化） | 断点归属（720 告警行高 40px） | 待抽测 |
 | 7 | 顶栏 `.tb-center` 改回 absolute 居中 | —（当前无 overlap 断言，若加则登记） | ⚠️ 断言缺位 |
 | 8 | 断点 1400 改 1200（规则整体错位） | 断点归属（1280 命中错档） | 待抽测（同 #1 机制，改断点值验证） |
+| 9 | 删 `#alertPanel.batch .al-check{display:inline-block}` | 批量态勾选框断言（可见计数 `chk` 变 0） | ✅ v1.3 实跑命中（首轮暴露弱断言：原按 DOM 计数仍绿 → 改为 `getBoundingClientRect().width>0` 可见计数后红，exit 1） |
+| 10 | `auditAdd()` 内去掉 `auditSave()` | 审计留痕 / 刷新持久化断言 | 待抽测 |
+| 11 | keydown 去掉 `Ctrl+Z` 分支 | Ctrl+Z 撤销断言（未闭环不恢复） | 待抽测 |
+| 12 | 删 `#alertPanel.batch .filter-row{display:none}` | 批量态筛选行让位断言（display 变 flex） | 待抽测 |
 
 ## 维护规则
 

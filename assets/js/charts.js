@@ -201,7 +201,8 @@
     if (opts.threshold !== undefined) {
       const y = Y(opts.threshold);
       body += `<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${w - pad.r}" y2="${y.toFixed(1)}" stroke="rgba(223,138,46,.55)" stroke-width="1" stroke-dasharray="3 3"/>`;
-      body += `<text x="${w - pad.r}" y="${(y - 4).toFixed(1)}" text-anchor="end" font-size="11.5" fill="rgba(223,138,46,.8)">${opts.thresholdLabel || '阈值 ' + opts.threshold}</text>`;
+      /* v1.2.2：阈值标签从右上角（与柱顶/折线重叠）移到左端线头上方，贴 pad.l 不压柱 */
+      body += `<text x="${pad.l + 3}" y="${(y - 3.5).toFixed(1)}" text-anchor="start" font-size="11" fill="rgba(223,138,46,.85)">${opts.thresholdLabel || '阈值 ' + opts.threshold}</text>`;
     }
 
     vals.forEach((v, i) => {
@@ -211,7 +212,11 @@
       const c = opts.colors ? opts.colors[i] : 'rgba(63,182,201,.55)';
       body += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${c}" rx="1"/>`;
       body += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="1.5" fill="rgba(255,255,255,.22)"/>`;
-      body += `<text x="${(x + bw / 2).toFixed(1)}" y="${h - 6}" text-anchor="middle" font-size="12" fill="${T.axis}" font-family="Bahnschrift,Consolas,monospace">${opts.labels[i]}</text>`;
+      /* v1.2.2：窄容器（mini 列 ~160px）X 轴标签截断为后 2 字 + 9.5px——8 站名硬排会叠成黑块；
+         hover 气泡仍显示 labels 全称（tipLabel 默认取 labels[i]） */
+      const raw = String(opts.labels[i] == null ? '' : opts.labels[i]);
+      const lab = isNarrow && raw.length > 3 ? raw.slice(-2) : raw;
+      body += `<text x="${(x + bw / 2).toFixed(1)}" y="${h - 6}" text-anchor="middle" font-size="${isNarrow ? 9.5 : 12}" ${isNarrow ? 'font-weight="600"' : ''} fill="${T.axis}" font-family="Bahnschrift,Consolas,monospace">${lab}</text>`;
       body += `<rect class="bh" data-i="${i}" x="${(pad.l + step * i).toFixed(1)}" y="${pad.t}" width="${step.toFixed(1)}" height="${ph}" fill="transparent"/>`;
     });
 
@@ -267,8 +272,9 @@
       acc += frac;
     });
     body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2 - 2}" fill="none" stroke="rgba(126,163,196,.08)" stroke-width="1"/>`;
-    body += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="${narrow ? 20 : 26}" font-family="Bahnschrift,Consolas,monospace" fill="#dcebf6">${opts.centerValue}</text>`;
-    body += `<text x="${cx}" y="${cy + (narrow ? 12 : 16)}" text-anchor="middle" font-size="12" fill="${T.axis}" letter-spacing="1">${opts.centerLabel || 'CLUSTERS'}</text>`;
+    /* v1.2.2：窄容器圆心空间 ~60px——centerValue 20→15px、label 12→9.5px、字距收紧，防「94.4% CLUSTERS」糊团 */
+    body += `<text x="${cx}" y="${cy - (narrow ? 1 : 2)}" text-anchor="middle" font-size="${narrow ? 15 : 26}" font-family="Bahnschrift,Consolas,monospace" fill="#dcebf6">${opts.centerValue}</text>`;
+    body += `<text x="${cx}" y="${cy + (narrow ? 10 : 16)}" text-anchor="middle" font-size="${narrow ? 9.5 : 12}" fill="${T.axis}" letter-spacing="${narrow ? .5 : 1}">${opts.centerLabel || 'CLUSTERS'}</text>`;
 
     if (narrow) {
       /* 两列图例（label + value 同行），donut 下方 */

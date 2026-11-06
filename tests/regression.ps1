@@ -85,6 +85,30 @@ try {
       Assert ($cp.on.ck -eq $true -and $cp.on.left -eq 'none') "驾驶舱态：左右面板隐藏、仅留主视图" "嫌疑：body.cockpit 规则未生效或选择器笔误（tokens.css cockpit 段）"
       Assert ($cp.on.sw -le 1282 -and $cp.on.centerW -ge 1240) "驾驶舱态无溢出：主视图 $($cp.on.centerW)px ≈ 1280 - 2×16 padding" "嫌疑：cockpit 网格单列未生效或 topbar/装饰层溢出（v1.2 曾修 topbar::after -10px 外扩）"
       Assert ($cp.off -eq $false) "驾驶舱退出恢复正常" "嫌疑：toggleCockpit 恢复逻辑缺失"
+      # 告警批量处置 + 操作审计断言（v1.3，仅 1280×720 视口执行一次）
+      playwright-cli eval "localStorage.removeItem('uiAuditLog')" | Out-Null
+      playwright-cli reload | Out-Null
+      Start-Sleep -Milliseconds 900
+      $jb = Get-Json (playwright-cli eval "(() => { const openN=()=>parseInt(document.getElementById('alertOpen').textContent.replace(/\D+/g,''),10); const rowsN=()=>document.querySelectorAll('#alertList .al-row').length; const auditN=()=>JSON.parse(localStorage.getItem('uiAuditLog')||'[]').length; const before={open:openN(),rows:rowsN()}; document.getElementById('btnAlertBatch').click(); const on={bar:document.getElementById('alertBatchBar').hidden,btn:document.getElementById('btnAlertBatch').classList.contains('is-on'),chk:[...document.querySelectorAll('#alertList .al-check')].filter(x=>x.getBoundingClientRect().width>0).length,rows:rowsN(),filters:getComputedStyle(document.getElementById('alertFilters')).display}; document.querySelectorAll('#alertList .al-row')[0].click(); document.querySelectorAll('#alertList .al-row')[1].click(); const picked={count:document.getElementById('abCount').textContent,picked:document.querySelectorAll('#alertList .al-row.picked').length,ics:getComputedStyle(document.querySelector('#alertList .al-row .al-ics')).display}; document.querySelector('[data-batch=close]').click(); const done={open:openN(),audit:auditN(),count:document.getElementById('abCount').textContent}; document.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true})); const undo={open:openN(),audit:auditN()}; document.getElementById('btnAlertBatch').click(); document.dispatchEvent(new KeyboardEvent('keydown',{key:'a',bubbles:true})); const au={on:document.getElementById('auditDrawer').classList.contains('on'),aria:document.getElementById('auditDrawer').getAttribute('aria-hidden'),rows:document.querySelectorAll('#auditBody .au-row').length,log:document.getElementById('auditBody').getAttribute('role'),scrim:document.getElementById('scrim').classList.contains('on'),fab:getComputedStyle(document.getElementById('demoFab')).display}; document.getElementById('auditClose').click(); au.closed=!document.getElementById('auditDrawer').classList.contains('on'); return JSON.stringify({before,on,picked,done,undo,au}); })()")
+      $b = $jb | ConvertFrom-Json
+      Assert ($b.on.btn -eq $true -and $b.on.bar -eq $false) "批量态：操作条出现、按钮置态" "嫌疑：toggleBatch 未切换 #alertBatchBar hidden 或 .is-on"
+      Assert ($b.on.chk -eq $b.on.rows -and $b.on.rows -ge 3) "批量态：$($b.on.chk)/$($b.on.rows) 行出现勾选框" "嫌疑：renderAlerts 未按 state.batch 输出 .al-check"
+      Assert ($b.on.filters -eq 'none') "批量态筛选行让位（高度零净增）" "嫌疑：#alertPanel.batch .filter-row 规则缺失——720p 告警列表会被操作条挤到 1 行"
+      Assert ($b.picked.count -match '已选 2 条' -and $b.picked.picked -eq 2) "勾选 2 条：$($b.picked.count) / $($b.picked.picked) 行高亮" "嫌疑：pickAlert 未把 id 写入 state.picked 或 renderAlerts 未输出 .picked"
+      Assert ($b.picked.ics -eq 'none') "批量态行内操作按钮收起（防误触）" "嫌疑：#alertPanel.batch .al-ics 规则缺失"
+      Assert ($b.done.open -eq ($b.before.open - 2)) "批量闭环：未闭环 $($b.before.open) → $($b.done.open)（-2）" "嫌疑：applyBatch 状态机或 afterAlertChange 未刷新 #alertOpen"
+      Assert ($b.done.audit -eq 1) "审计留痕：批量闭环写入 $($b.done.audit) 条" "嫌疑：auditAdd 未调用或 localStorage key uiAuditLog 变更"
+      Assert ($b.undo.open -eq $b.before.open) "Ctrl+Z 撤销：未闭环恢复 $($b.undo.open)（原 $($b.before.open)）" "嫌疑：undoStack 未入栈或 keydown Ctrl+Z 未绑定"
+      Assert ($b.undo.audit -eq 2) "撤销本身也留痕（$($b.undo.audit) 条）" "嫌疑：undoLast 未写审计"
+      Assert ($b.au.on -eq $true -and $b.au.aria -eq 'false') "审计抽屉可打开（aria-hidden=false）" "嫌疑：A 键 / #navAudit 未绑定或 openAudit 未移除 on"
+      Assert ($b.au.rows -ge 2 -and $b.au.log -eq 'log') "审计抽屉渲染 $($b.au.rows) 条记录（role=log）" "嫌疑：renderAudit 未渲染 .au-row 或 role=log 被移除"
+      Assert ($b.au.scrim -eq $true -and $b.au.fab -eq 'none') "抽屉打开：遮罩生效、演示 FAB 让位" "嫌疑：syncDrawerMask 未加 body.drawer-open（FAB z-index 421 > 抽屉 310）"
+      playwright-cli reload | Out-Null
+      Start-Sleep -Milliseconds 900
+      $jau = Get-Json (playwright-cli eval "(() => JSON.stringify({stored:JSON.parse(localStorage.getItem('uiAuditLog')||'[]').length,badge:document.getElementById('auditCount').textContent,batchOn:document.getElementById('btnAlertBatch').classList.contains('is-on')}))()")
+      $au2 = $jau | ConvertFrom-Json
+      Assert ($au2.stored -eq $b.undo.audit -and $au2.badge -eq [string]$b.undo.audit) "审计持久化：刷新后保留 $($au2.stored) 条（菜单计数 $($au2.badge)）" "嫌疑：auditLoad 未在 start() 读取 localStorage"
+      Assert (-not $au2.batchOn) "刷新后批量模式复位（不持久化，防交接班误触）" "嫌疑：批量态被写入 localStorage"
       playwright-cli eval "localStorage.clear()" | Out-Null
     }
     $c = (playwright-cli console error) -join "`n"

@@ -25,6 +25,8 @@
 .panel-hd .bar.crit{background:var(--crit)}
 .panel-hd h3{font-size:12px;font-weight:600;letter-spacing:.14em;color:#c2d3e3;white-space:nowrap}
 .panel-hd .meta{margin-left:auto;font-size:10.5px;color:var(--txt-4);letter-spacing:.04em;white-space:nowrap}
+/* v1.2.2：meta 与操作按钮之间加分隔线 + 内边距，防误触（告警头「按优先级排序 | 导出 CSV」） */
+.panel-hd .meta + .link-btn{padding-left:10px;border-left:1px solid rgba(126,163,196,.2);margin-left:2px}
 .hd-tag{
   font-size:10px;line-height:15px;padding:0 5px;border-radius:2px;
   color:var(--txt-2);background:rgba(126,163,196,.1);
