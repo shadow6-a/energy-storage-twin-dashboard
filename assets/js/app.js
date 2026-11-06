@@ -646,6 +646,7 @@
     if (state.level <= 1) {
       tabs[0].textContent = '功率';
       tabs[1].textContent = 'SOC';
+      tabs[0].title = tabs[1].title = '';
       lg.style.display = 'flex';
       meta.textContent = '对照';
       meta.title = '主图对照：计划 vs 实际';
@@ -714,6 +715,7 @@
     if (state.level === 2) {
       tabs[0].textContent = '簇温度';
       tabs[1].textContent = '簇SOC';
+      tabs[0].title = tabs[1].title = '';
       lg.style.display = 'none';
       meta.textContent = '12 簇';
       meta.title = '舱内 12 电池簇';
@@ -755,9 +757,11 @@
       return;
     }
 
-    // level 3
-    tabs[0].textContent = '单体电压';
-    tabs[1].textContent = '单体温度';
+    // level 3（v1.3.3：Tab 文案压到两字——「单体电压/单体温度」四字在 320px 右栏会把「明细」挤出面板）
+    tabs[0].textContent = '电压';
+    tabs[0].title = '单体电压';
+    tabs[1].textContent = '温度';
+    tabs[1].title = '单体温度';
     lg.style.display = 'none';
     meta.textContent = '簇 ' + cl.id;
     meta.title = '簇 ' + cl.id + ' · 32 单体';

@@ -49,7 +49,7 @@ try {
     playwright-cli reload | Out-Null
     playwright-cli resize $vp.w $vp.h | Out-Null
     Start-Sleep -Milliseconds 900
-    $j = Get-Json (playwright-cli eval "(() => { const canScroll = () => { const y = scrollY; scrollTo(0, 9e5); const m = scrollY > 0; scrollTo(0, y); return m; }; const lis = [...document.querySelectorAll('#alertList [role=listitem]')]; return JSON.stringify({ overflowX: document.documentElement.scrollWidth > innerWidth, scrollY: canScroll(), alertFs: parseFloat(getComputedStyle(document.querySelector('.al-txt')).fontSize), chipH: document.querySelector('#alertFilters .chip').offsetHeight, rows: document.querySelectorAll('#alertList .al-row').length, leftColW: Math.round(document.querySelector('.col-left').getBoundingClientRect().width * 10) / 10, alRowH: Math.round(document.querySelector('.al-row').getBoundingClientRect().height), liCount: lis.length, tabH: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().height), tabW: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().width), hdH: Math.round(document.querySelector('#chartsPanel .panel-hd').getBoundingClientRect().height), metaW: Math.round(document.getElementById('chartMeta').getBoundingClientRect().width), ariaOk: lis.filter(l => /^[^，]+告警，[^，]+，.+/.test(l.getAttribute('aria-label') || '')).length }); })()")
+    $j = Get-Json (playwright-cli eval "(() => { const canScroll = () => { const y = scrollY; scrollTo(0, 9e5); const m = scrollY > 0; scrollTo(0, y); return m; }; const lis = [...document.querySelectorAll('#alertList [role=listitem]')]; return JSON.stringify({ overflowX: document.documentElement.scrollWidth > innerWidth, scrollY: canScroll(), alertFs: parseFloat(getComputedStyle(document.querySelector('.al-txt')).fontSize), chipH: document.querySelector('#alertFilters .chip').offsetHeight, rows: document.querySelectorAll('#alertList .al-row').length, leftColW: Math.round(document.querySelector('.col-left').getBoundingClientRect().width * 10) / 10, alRowH: Math.round(document.querySelector('.al-row').getBoundingClientRect().height), liCount: lis.length, tabH: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().height), tabW: Math.round(document.querySelector('#chartTabs button').getBoundingClientRect().width), hdH: Math.round(document.querySelector('#chartsPanel .panel-hd').getBoundingClientRect().height), metaW: Math.round(document.getElementById('chartMeta').getBoundingClientRect().width), hdOver: (() => { const h = document.querySelector('#chartsPanel .panel-hd'); return h.scrollWidth - h.clientWidth; })(), ariaOk: lis.filter(l => /^[^，]+告警，[^，]+，.+/.test(l.getAttribute('aria-label') || '')).length }); })()")
     $o = $j | ConvertFrom-Json
     Assert (-not $o.overflowX) "无横向溢出" "实际 scrollWidth 大于视口——嫌疑：.app overflow:hidden 被移除、或某元素超出流式网格（用 .playwright-cli 截图排查溢出源）"
     Assert (-not $o.scrollY)   "无页面滚动（含标注层缩放溢出）" "实际可纵向滚动——嫌疑：.anno-layer 缩放溢出未被裁剪（.app{overflow:hidden} 是否还在？）"
@@ -69,6 +69,7 @@ try {
     if ($o.metaW -gt 0) {
       Assert ($o.metaW -ge 24) "头部证据「对照」宽 $($o.metaW)px ≥ 24px（未竖排）" "证据被挤成 20px 竖排——嫌疑：#chartsPanel .panel-hd .meta 丢失 flex-shrink:0 或 max-width 过小"
     }
+    Assert ($o.hdOver -le 0) "趋势面板头无横向溢出（scrollWidth-clientWidth=$($o.hdOver)）" "内容被挤出面板右缘——嫌疑：Tab 文案过长（L3 应 ≤2 字）或禁用压缩后仍超宽"
     if ($script:failInView) {
       $shot = "$PSScriptRoot/artifacts/fail-$($vp.w)x$($vp.h).png"
       playwright-cli screenshot --filename=$shot | Out-Null
@@ -116,6 +117,19 @@ try {
       $au2 = $jau | ConvertFrom-Json
       Assert ($au2.stored -eq $b.undo.audit -and $au2.badge -eq [string]$b.undo.audit) "审计持久化：刷新后保留 $($au2.stored) 条（菜单计数 $($au2.badge)）" "嫌疑：auditLoad 未在 start() 读取 localStorage"
       Assert (-not $au2.batchOn) "刷新后批量模式复位（不持久化，防交接班误触）" "嫌疑：批量态被写入 localStorage"
+      # 深钻态趋势头防溢出断言（v1.3.3，仅 1280 视口）：L3 Tab 文案变长曾把「明细」挤出面板（换行断言测不出裁剪）
+      playwright-cli eval "document.querySelector('#stationList .st-row').click()" | Out-Null
+      Start-Sleep -Milliseconds 700
+      playwright-cli eval "(() => { const b = document.querySelector('[data-act=first-cabin]'); if (b) b.click(); })()" | Out-Null
+      Start-Sleep -Milliseconds 700
+      playwright-cli eval "(() => { const b = document.querySelector('[data-act=first-cluster]'); if (b) b.click(); })()" | Out-Null
+      Start-Sleep -Milliseconds 900
+      $jd = Get-Json (playwright-cli eval "(() => { const hd = document.querySelector('#chartsPanel .panel-hd'); const btns = [...hd.querySelectorAll('button')]; const last = btns[btns.length - 1]; const tabs = [...document.querySelectorAll('#chartTabs button')]; return JSON.stringify({ over: hd.scrollWidth - hd.clientWidth, tabs: tabs.map(t => t.textContent), maxTabH: Math.max(...tabs.map(t => Math.round(t.getBoundingClientRect().height))), btnR: Math.round(last.getBoundingClientRect().right), hdR: Math.round(hd.getBoundingClientRect().right) }); })()")
+      $d = $jd | ConvertFrom-Json
+      Assert ($d.over -le 0 -and $d.btnR -le $d.hdR) "深钻态（Tab：$($d.tabs -join ' / ')）面板头无溢出、明细按钮完整可见" "明细按钮被挤出面板右缘——嫌疑：L3 Tab 文案过长（应 ≤2 字，app.js renderCharts level 3 段）"
+      Assert ($d.maxTabH -le 30) "深钻态 Tab 仍单行（最高 $($d.maxTabH)px ≤ 30px）" "深钻态 Tab 换行——嫌疑：L3 文案改长或 nowrap 丢失"
+      playwright-cli reload | Out-Null
+      Start-Sleep -Milliseconds 800
       playwright-cli eval "localStorage.clear()" | Out-Null
     }
     $c = (playwright-cli console error) -join "`n"

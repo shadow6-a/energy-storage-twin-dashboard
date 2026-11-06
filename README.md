@@ -1,6 +1,6 @@
 # 储能电站集群 · 数字孪生调度大屏
 
-![tests](https://img.shields.io/badge/tests-61%2F61%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.3.1--prototype-orange)
+![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![mutation](https://img.shields.io/badge/mutation--tested-8%20checklist-blue) ![version](https://img.shields.io/badge/version-v1.3.3--prototype-orange)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（零三方库），Playwright + PowerShell 回归门禁全程护栏。
 
@@ -11,9 +11,11 @@
 - **操作审计留痕**：审计抽屉记录「时间 / 角色 / 动作 / 对象 / 结果」，覆盖确认、闭环、批量处置、撤销、策略下发、角色切换；localStorage 留存最近 200 条，菜单项带条数徽标，可导出 CSV
 - **边界**：审计为**前端演示态**（浏览器本地存储、可被清空），生产环境需后端审计表 + 账号绑定 + 不可篡改存储（见 `feasibility.md`）
 
-## 演示动图（待录制）
+## 演示动图
 
-建议 10–20 秒 GIF 展示完整键盘流：**站点下钻 → 告警确认 → Space 暂停 → C 驾驶舱切换 → 标签碰撞避让**（本地用 OBS / Chrome 录屏工具录制后放 `assets/img/demo.gif`，此处引用）——一张动图胜过长篇大论。
+![演示：下钻 → 处置 → 批量闭环 → 撤销 → 审计 → 驾驶舱](assets/img/demo.gif)
+
+15 秒真实录制（`tests/tools/demo-gif/` 脚本可复现）：**L0 总览 → Space 暂停 → 告警定位自动下钻到簇 C-07（压差/温度可见）→ 确认 → 闭环 → 批量勾选 2 条闭环（未闭环 8→5）→ Ctrl+Z 撤销（回跳 8）→ A 审计留痕 → C 驾驶舱模式**。
 
 ## 免责边界
 
@@ -60,6 +62,7 @@ python -m http.server 8796   # 根目录起静态服务
 
 ## 版本里程碑
 
+- **v1.3.3** · 深钻态（L3）Tab 文案压到两字（修「明细」被挤出面板）、面板头溢出断言 + 15 秒演示 GIF 录制脚本入仓（断言 79 → 86）
 - **v1.3.1** · 四个文档页乱码全量恢复（字节级逆向 + 778 缺口判读），`mockups.html` 内联脚本修复，恢复工具链留档
 - **v1.3** · 告警批量处置（多选 / 批量确认 / 批量闭环）、Ctrl+Z 撤销、操作审计留痕（抽屉 + 200 条本地留存 + CSV）、抽屉遮罩统一（修 FAB 层级）
 - **v1.2** · 标签屏幕空间碰撞避让（滞后阈值 + 引线 + 优先级）、驾驶舱模式、CSS 缓存治理（link 版本参数）
