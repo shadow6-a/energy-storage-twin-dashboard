@@ -8,3 +8,4 @@ server/_*.log
 server/_*.out
 _gif/
 .playwright-cli/
+_runs.json
