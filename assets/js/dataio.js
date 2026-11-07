@@ -26,6 +26,7 @@
     ws: null,
     connected: false,
     attempts: 0,            /* 当前连续重连次数（退避依据） */
+    reconnects: 0,          /* 累计重连成功次数（遥测上报） */
     lastMsgAt: 0,
     msgCount: 0,
     badFrames: 0,
@@ -52,6 +53,8 @@
       mode: state.mode,
       connected: state.connected,
       attempts: state.attempts,
+      reconnects: state.reconnects,
+      lastDataTs: state.lastMsgAt || 0,
       nextRetrySec: state.connected || state.mode !== 'ws' ? 0 : backoffSec(),
       lastMsgAt: state.lastMsgAt,
       msgCount: state.msgCount,
@@ -69,6 +72,7 @@
     state.ws = ws;
 
     ws.onopen = () => {
+      if (state.attempts > 0) state.reconnects++;   /* 断线重连成功才累计 */
       state.attempts = 0;
       setStatus({ connected: true });
       startHeartbeat();
@@ -159,6 +163,9 @@
           if (H.onCluster) H.onCluster(m.st, m.cabin, m.cluster);
         }
         return;
+      case 'opAck':
+        if (H.onOpAck) H.onOpAck(m);
+        return;
       default: state.badFrames++; return;
     }
   }
@@ -166,7 +173,7 @@
   /* ---------------- 对外 API ---------------- */
 
   /* 初始化并按配置连接。
-     hooks: {onScada,onAlert,onAlertState,onHistory,onCluster,onHello,onStatus}
+     hooks: {onScada,onAlert,onAlertState,onHistory,onCluster,onHello,onOpAck,onStatus}
      opts:  缺省按 config.js（source/url）；显式传 {mode:'ws', url} 可覆盖（URL 参数 ?ws= 路径） */
   function init(hooks, opts) {
     state.hooks = hooks || {};

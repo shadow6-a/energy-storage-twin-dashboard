@@ -18,6 +18,8 @@ const http = require('http');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const M = require('./metrics');
+const BOOT_TS = Date.now();
 
 const PORT = parseInt(process.argv[2] || process.env.BRIDGE_PORT || '9001', 10);
 const DATA_DIR = path.join(__dirname, 'data');
@@ -92,6 +94,7 @@ let opsLog = path.join(DATA_DIR, 'ops.jsonl');
 function loadAll() {
   stationRows = loadCsv('stations.csv', stationRows);
   alertRows = loadCsv('alerts.csv', alertRows);
+  rosterMap = new Map(stationRows.map(r => [r.id, r]));
 }
 
 /* ---------------- 指标推演（演示数据源：真实部署替换为采集值） ----------------
@@ -140,10 +143,15 @@ function simulateStations() {
 const live = new Map();      /* id → {power,soc,soh,temp,status,comm,ts} */
 let mqttClient = null, mqttState = 'off', mqttMsgCount = 0;
 
+let lastMqttAt = 0;
+
 function ingestPayload(topic, raw) {
   let m;
-  try { m = JSON.parse(raw.toString('utf8')); } catch (e) { return; }
+  try { m = JSON.parse(raw.toString('utf8')); } catch (e) { M.inc('ess_mqtt_msgs_dropped_total'); return; }
   mqttMsgCount++;
+  lastMqttAt = Date.now();
+  M.tick('ess_mqtt_msgs');
+  M.inc('ess_mqtt_msgs_total');
   if (m && typeof m.t === 'string') {
     if (m.t === 'scada' && Array.isArray(m.stations)) { m.stations.forEach(applyStation); return; }
     if (m.t === 'scada' && m.id) { applyStation(m); return; }
@@ -155,8 +163,21 @@ function ingestPayload(topic, raw) {
   if (m && m.id && (m.lv || m.text)) { pushAlert(m); return; }
 }
 
+/* 合理性闸门：真实 BMS 的坏点（跳变/NaN/超物理量程）在入口拦截，不进前端 */
+let rosterMap = new Map();
+function plausible(id, s, roster) {
+  const r = roster.get(id);
+  const mw = r ? r.mw : 200;
+  if (s.power != null && (!isFinite(s.power) || Math.abs(s.power) > mw * 3)) return false;   /* 超额定 3 倍 → 坏点 */
+  if (s.soc != null && (!isFinite(s.soc) || s.soc < 0 || s.soc > 100)) return false;
+  if (s.soh != null && (!isFinite(s.soh) || s.soh <= 0 || s.soh > 100)) return false;
+  if (s.temp != null && (!isFinite(s.temp) || s.temp < -40 || s.temp > 90)) return false;
+  return true;
+}
+
 function applyStation(s) {
   if (!s || !s.id) return;
+  if (!plausible(s.id, s, rosterMap)) { M.inc('ess_mqtt_msgs_dropped_total'); return; }
   const prev = live.get(s.id) || {};
   const next = Object.assign({}, prev, { ts: Date.now() });
   ['power', 'soc', 'soh', 'temp'].forEach(k => {
@@ -303,13 +324,28 @@ function decodeFrame(buf) {
 }
 
 const server = http.createServer((req, res) => {
-  /* 健康检查端点：网关/运维探活用 */
+  /* Prometheus 抓取端点：桥接自观测 + 前端遥测聚合（GET /metrics） */
+  if (req.url === '/metrics') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
+    res.end(M.render());
+    return;
+  }
+  /* 健康检查端点：网关/运维探活用；不健康返回 503（可触发告警联动） */
   if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const reasons = [];
+    if (MQTT_URL && mqttState !== 'connected') reasons.push('mqtt:' + mqttState);
+    if (MQTT_URL && mqttMsgCount > 0 && lastMqttAt > 0 && Date.now() - lastMqttAt > 30000) {
+      /* 曾有数据流，现在断流 >30s → 数据源故障（区别于刚启动的静默） */
+      reasons.push('mqtt-silent>30s');
+    }
+    const ok = reasons.length === 0;
+    res.writeHead(ok ? 200 : 503, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      ok: true, clients: clients.size, stations: stationRows.length, alerts: alertRows.length,
+      ok, reasons,
+      clients: clients.size, stations: stationRows.length, alerts: alertRows.length,
       source: MQTT_URL ? 'mqtt' : 'csv', mqtt: mqttState, mqttMsgs: mqttMsgCount,
-      liveCount: live.size, sample: live.get('S01') || null, ts: Date.now()
+      msgRate: M.rate('ess_mqtt_msgs'), liveCount: live.size,
+      sample: live.get('S01') || null, uptimeS: Math.round((Date.now() - BOOT_TS) / 1000), ts: Date.now()
     }));
     return;
   }
@@ -357,19 +393,70 @@ server.on('upgrade', (req, sock) => {
   historyCache.forEach(h => sendJson(sock, h));
 });
 
-/* ---------------- 处置回写：op → ops.jsonl + 广播同步 ---------------- */
+/* ---------------- 处置回写：op → ops.jsonl + 广播同步 ----------------
+   反向控制闭环（outbox 模式）：本地审计先落盘（不可丢），
+   MQTT 投递失败进重试队列（2s 间隔，上限 5 次），前端通过 opAck 帧拿到最终结果。 */
+const opsQueue = [];   /* 待重试的 {rec, tries} */
+let opAckSeq = 0;
+
+function publishOps(rec) {
+  if (!(mqttClient && mqttState === 'connected')) return false;
+  try { mqttClient.publish(OPS_TOPIC, JSON.stringify(rec)); return true; } catch (e) { return false; }
+}
+
+setInterval(() => {
+  if (!opsQueue.length) return;
+  for (let i = opsQueue.length - 1; i >= 0; i--) {
+    const item = opsQueue[i];
+    item.tries++;
+    M.inc('ess_ops_retry_total');
+    if (publishOps(item.rec)) {
+      opsQueue.splice(i, 1);
+      M.set('ess_ops_queue_depth', opsQueue.length);
+      broadcast({ t: 'opAck', op: item.rec.ids.join(','), action: item.rec.action, delivered: true, tries: item.tries, ts: Date.now() });
+      console.log('[op] retry ok, tries =', item.tries);
+    } else if (item.tries >= 5) {
+      opsQueue.splice(i, 1);
+      M.set('ess_ops_queue_depth', opsQueue.length);
+      M.inc('ess_ops_dead_total');
+      broadcast({ t: 'opAck', op: item.rec.ids.join(','), action: item.rec.action, delivered: false, tries: item.tries, ts: Date.now() });
+      console.warn('[op] dead-letter after 5 tries:', item.rec.action, item.rec.ids.join(','));
+    }
+  }
+}, 2000);
+
 function onMessage(sock, m) {
+  M.inc('ess_ws_msgs_in_total');
+  M.tick('ess_ws_msgs');
   if (m.t === 'ping') { sendJson(sock, { t: 'pong', ts: m.ts }); return; }
+  /* 前端遥测：FPS / Heap / 重连次数 / 数据新鲜度 → /metrics（取所有客户端最新值） */
+  if (m.t === 'telemetry') {
+    M.set('ess_ui_fps', +m.fps || 0);
+    M.set('ess_ui_heap_mb', Math.round((+m.heapMB || 0) * 10) / 10);
+    M.set('ess_ui_reconnects', +m.reconnects || 0);
+    M.set('ess_ui_last_data_age_seconds', Math.max(0, Math.round(+m.lastDataAge || 0)));
+    M.set('ess_ui_ts', Date.now());
+    return;
+  }
   if (m.t !== 'op' || !Array.isArray(m.ids)) return;
+  const t0 = process.hrtime.bigint();
   const rec = { ts: new Date().toISOString(), by: String(m.by || 'web'), action: String(m.action || '?'), ids: m.ids, result: 'ok' };
   try {
     fs.appendFileSync(opsLog, JSON.stringify(rec) + '\n');
   } catch (e) { rec.result = 'log-failed: ' + e.message; }
+  const logMs = Number(process.hrtime.bigint() - t0) / 1e6;
+  M.set('ess_ops_writeback_ms', Math.round(logMs * 10) / 10);
+  M.inc('ess_ops_total');
   console.log('[op]', JSON.stringify(rec));
-  /* MQTT 模式：处置回写同时投递到 broker（EMS/工单系统订阅 <prefix>/ops 即可接单） */
-  if (mqttClient && mqttState === 'connected') {
-    try { mqttClient.publish(OPS_TOPIC, JSON.stringify(rec)); } catch (e) { /* 断链不阻塞本地审计 */ }
+  /* MQTT 模式：投递失败不阻塞本地审计，进重试队列（2s×5），终态以 opAck 通知前端 */
+  if (publishOps(rec)) {
+    M.inc('ess_ops_published_total');
+  } else if (MQTT_URL) {
+    opsQueue.push({ rec, tries: 0 });
+    M.set('ess_ops_queue_depth', opsQueue.length);
+    M.inc('ess_ops_retry_total');
   }
+  sendJson(sock, { t: 'opAck', op: rec.ids.join(','), action: rec.action, logged: true, delivered: MQTT_URL ? !!(mqttClient && mqttState === 'connected') : true, ts: Date.now() });
   m.ids.forEach(id => {
     let status;
     if (m.action === 'ack') status = 1;
@@ -401,6 +488,28 @@ setInterval(() => {
   refreshHistory();
   if (clients.size) historyCache.forEach(h => broadcast(h));
 }, 30000);
+
+/* 5s 刷新自观测 gauge：/metrics 与 /health 共用 */
+setInterval(() => {
+  M.set('ess_uptime_seconds', Math.round((Date.now() - BOOT_TS) / 1000));
+  M.set('ess_ws_clients', clients.size);
+  M.set('ess_ws_msgs_rate', M.rate('ess_ws_msgs'));
+  M.set('ess_mqtt_msgs_rate', M.rate('ess_mqtt_msgs'));
+  M.set('ess_mqtt_connected', mqttState === 'connected' ? 1 : 0);
+  M.set('ess_stations_online', MQTT_URL ? scadaFromLive().filter(s => s.comm === 'online').length : stationRows.length);
+  M.set('ess_alerts_total', alertRows.length);
+  const mu = process.memoryUsage();
+  M.set('ess_bridge_heap_mb', Math.round(mu.heapUsed / 1048576 * 10) / 10);
+  M.set('ess_bridge_rss_mb', Math.round(mu.rss / 1048576 * 10) / 10);
+  M.set('ess_bridge_eventloop_lag_ms', eventLoopLagMs);
+}, 5000);
+
+/* 事件循环延迟探针（Node 侧卡顿直接可见） */
+let eventLoopLagMs = 0;
+const lagBase = process.hrtime.bigint();
+setInterval(() => {
+  eventLoopLagMs = Math.max(0, Math.round(Number(process.hrtime.bigint() - lagBase) / 1e6 - 1000));
+}, 1000);
 
 /* 新告警注入演示：向 server/data/alerts.csv 追加一行并保存，10s 内全端弹出台账 */
 

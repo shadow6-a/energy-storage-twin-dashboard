@@ -3,6 +3,33 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.2.0-prototype（2026-11-07）
+
+**工程化监控基建**：从「能看」到「能管」——Prometheus 指标端点、前端遥测、异常注入测试、长跑压测、反向控制闭环（outbox 重试 + 终态回滚）。
+
+### 1. `server/metrics.js`（新，零依赖 Prometheus 注册表）
+- counter / gauge / 5s 滑动窗口速率，`text/plain; version=0.0.4` 格式，`GET /metrics` 直接被 Prometheus 抓取
+
+### 2. 桥接自观测（`server/bridge.js`）
+- 数据面：`ess_mqtt_msgs_total` / `ess_mqtt_msgs_rate` / `ess_mqtt_msgs_dropped_total` / `ess_mqtt_connected` / `ess_stations_online`
+- 控制面：`ess_ops_total` / `ess_ops_writeback_ms`（回写落盘耗时）/ `ess_ops_published_total` / `ess_ops_retry_total` / `ess_ops_queue_depth` / `ess_ops_dead_total`（5 次重试后死信）
+- 进程面：`ess_bridge_heap_mb` / `ess_bridge_rss_mb` / `ess_bridge_eventloop_lag_ms`（1s 事件循环延迟探针）/ `ess_uptime_seconds`
+- 前端遥测聚合：`ess_ui_fps` / `ess_ui_heap_mb` / `ess_ui_reconnects` / `ess_ui_last_data_age_seconds`
+- **合理性闸门**：NaN / 超 3 倍额定功率 / SOC 出 0-100 / 温度出 -40~90℃ 的坏点在摄取入口拦截，不进前端
+- **/health 升级**：MQTT 断连或数据源死寂 >30s → `503 + reasons[]`，可直接联动告警/运维系统
+
+### 3. 反向控制闭环（outbox 模式）
+- 处置回写先落盘 `ops.jsonl`（不可丢），MQTT 投递失败进重试队列（2s × 5 次）
+- 每个回写终态以 `opAck` 帧回前端：投递成功/失败可见；**失败时前端自动回滚本地告警状态 + toast 明示**，状态以桥接为准不猜数
+
+### 4. 前端遥测（`assets/js/monitor.js` 新）
+- rAF 采样 FPS、`performance.memory` Heap、WS 累计重连次数、最后数据年龄（10s 上报，断流即可见）
+- `DataIO.status()` 暴露 `reconnects` / `lastDataTs`；`console.table(Monitor.snapshot())` 随时自查
+
+### 5. 测试
+- `tests/fault_inject.ps1`（9 断言）：指标暴露 → 速率>0 → **kill 数据源** → 12s 站级掉线 → 30s `/health` 降级（reasons）→ `ess_stations_online=0` → **重启源** → ≥7 站恢复（S06 按设计仍离线）→ 前端 FPS≥30 已进指标
+- `tests/soak.ps1`：长跑采样器（JS Heap / FPS / 数据年龄 / 桥接 RSS / 事件循环延迟 → `tests/soak-latest.csv`），支持 `-Minutes 1440` 无人值守 24h，堆增长超限自动失败退出
+
 ## v2.1.0-prototype（2026-11-07）
 
 **MQTT 直连落地**：现场 EMS/BMS 出 MQTT 即可驱动大屏，链路端到端 10 断言全绿（公共 broker 实测）。

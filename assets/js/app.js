@@ -1848,6 +1848,19 @@
       }
     } else if (m.t === 'history' || m.t === 'cluster') {
       liveDirty = true;   /* 缓存已由 DataIO 落 Map，此处只需触发重渲 */
+    } else if (m.t === 'opAck') {
+      /* 反向控制终态：投递失败 → 回滚本地状态并明示用户（状态以桥接为准，不猜） */
+      if (m.delivered === false) {
+        const ids = String(m.op || '').split(',');
+        let rolled = 0;
+        ids.forEach(id => {
+          const a = DATA.ALERTS.find(x => x.id === id);
+          if (a && a.status !== 0) { a.status = 0; rolled++; }
+        });
+        if (rolled) { renderAlerts(); renderStations(); syncCritPulse(); }
+        toast('处置指令投递失败（重试 ' + (m.tries || 0) + ' 次未达 broker），已回退本地状态', 'warn');
+        console.warn('[opAck] dead-letter:', m.op, m.action);
+      }
     }
     /* hello / ping / pong：链路层，无需处理 */
     const now = performance.now();
@@ -1890,6 +1903,7 @@
       onScada: stations => handleLiveMsg({ t: 'scada', stations }),
       onAlert: alert => handleLiveMsg({ t: 'alert', alert }),
       onAlertState: m => handleLiveMsg(m),
+      onOpAck: m => handleLiveMsg(m),
       onHistory: () => { liveDirty = true; },
       onCluster: () => { liveDirty = true; },
       onHello: m => { liveBridge = (m && m.bridge) || ''; renderSrcBadge(); },
@@ -1923,6 +1937,7 @@
     demoSync();
     renderAll();
     connectLive(); /* v1.2：?ws=mock 时接通模拟 WS 数据源（默认关闭不破坏确定性演示） */
+    if (window.Monitor) window.Monitor.start(10000); /* v2.2：前端遥测上报（FPS/Heap/重连/数据新鲜度 → /metrics） */
 
     setInterval(() => {
       if (state.linkDown || state.paused) return;   // 断连降级 / 手动暂停：冻结数据帧，视图保持最后快照

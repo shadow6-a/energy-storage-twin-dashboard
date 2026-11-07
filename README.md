@@ -4,7 +4,7 @@
 
 [![在线 Demo](assets/mockups/00-cover.png)](https://shadow6-a.github.io/energy-storage-twin-dashboard/)
 
-![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![version](https://img.shields.io/badge/version-v2.1.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
+![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![fault%20inject](https://img.shields.io/badge/fault%20inject-9%2F9%20passing-red) ![version](https://img.shields.io/badge/version-v2.2.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（**零三方库、零构建、零 npm 依赖**），MQTT 直连真实 EMS，Playwright + PowerShell 回归门禁全程护栏。
 
@@ -69,6 +69,31 @@ node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
 - **没有 EMS 也能自证**：`node server/mqtt-sim.js --prefix ess` 即起一个 1Hz 遥测 + 随机告警的 EMS 替身
 
 自带桥接（`server/bridge.js` + 手写 MQTT 3.1.1 客户端，**零 npm 依赖**），端到端护栏：`tests/live_e2e.ps1`（WS 链路 9 断言）、`tests/mqtt_e2e.ps1`（MQTT 链路 10 断言）。
+
+## 工程化监控（v2.2：不只是「能看」）
+
+桥接进程自带 Prometheus 指标端点与降级探活，前端遥测回传聚合——出问题是「有指标可查」而不是「两眼一抹黑」：
+
+```bash
+curl http://127.0.0.1:9001/metrics   # Prometheus text format，直接抓取
+curl http://127.0.0.1:9001/health    # 数据源死寂>30s → 503 + reasons[]（可联动告警）
+```
+
+| 指标组 | 内容 |
+|---|---|
+| 数据面 | `ess_mqtt_msgs_total / _rate / _dropped_total`、`ess_mqtt_connected`、`ess_stations_online` |
+| 控制面 | `ess_ops_writeback_ms`（回写落盘耗时）、`ess_ops_retry_total / _queue_depth / _dead_total`（投递重试与死信） |
+| 进程面 | `ess_bridge_heap_mb / _rss_mb / _eventloop_lag_ms`、`ess_uptime_seconds` |
+| 前端遥测 | `ess_ui_fps`、`ess_ui_heap_mb`、`ess_ui_reconnects`、`ess_ui_last_data_age_seconds` |
+
+**反向控制闭环（outbox 模式）**：处置指令先落盘审计（不可丢），MQTT 投递失败自动重试（2s×5）；终态 `opAck` 帧回前端——**投递失败时 UI 自动回滚本地状态并 toast 明示**，绝不静默丢指令。真实 BMS 的 NaN / 超量程坏点在摄取入口被合理性闸门拦截。
+
+**长跑与故障演练**（72h 无人值守的护栏）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/fault_inject.ps1   # kill 数据源→掉线→health 降级→恢复，9 断言
+powershell -ExecutionPolicy Bypass -File tests/soak.ps1 -Minutes 1440   # 24h 内存/FPS/延迟采样，堆增长超限自动失败
+```
 
 ## 免责边界
 
