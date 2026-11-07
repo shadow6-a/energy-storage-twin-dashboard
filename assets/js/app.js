@@ -1899,6 +1899,11 @@
     const urlOverride = (p && p !== 'live' && /^wss?:\/\//.test(p)) ? p : null;
     const wantLive = p === 'live' || !!urlOverride || window.DATA_CONFIG.source === 'ws';
     if (!wantLive) { DataIO.init({}); renderSrcBadge(); return null; }
+    /* 内网/服务器部署：?ws=live 自动推导同域 /ws，配合 nginx 反代（https 自动 wss）。
+       本机开发（静态服务端口 ≠ 9001）仍回退 config.js 的 ws://127.0.0.1:9001/ws。 */
+    const localDev = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) && location.port !== '9001';
+    const sameOriginWs = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    const defaultWs = localDev ? window.DATA_CONFIG.url : sameOriginWs;
     DataIO.init({
       onScada: stations => handleLiveMsg({ t: 'scada', stations }),
       onAlert: alert => handleLiveMsg({ t: 'alert', alert }),
@@ -1908,7 +1913,7 @@
       onCluster: () => { liveDirty = true; },
       onHello: m => { liveBridge = (m && m.bridge) || ''; renderSrcBadge(); },
       onStatus: renderSrcBadge
-    }, urlOverride ? { mode: 'ws', url: urlOverride } : { mode: 'ws' });
+    }, { mode: 'ws', url: urlOverride || defaultWs });
     renderSrcBadge();
     return null;
   }

@@ -24,6 +24,7 @@
   const state = {
     mode: 'off',            /* off | mock | ws */
     ws: null,
+    url: '',                /* 实际连接的 WS 地址（重连必须用同一个，不能退回 cfg 默认值） */
     connected: false,
     attempts: 0,            /* 当前连续重连次数（退避依据） */
     reconnects: 0,          /* 累计重连成功次数（遥测上报） */
@@ -51,6 +52,7 @@
   function status() {
     return {
       mode: state.mode,
+      url: state.url,
       connected: state.connected,
       attempts: state.attempts,
       reconnects: state.reconnects,
@@ -65,19 +67,26 @@
   /* ---------------- 连接管理 ---------------- */
 
   function connect(url) {
-    if (state.ws) { state.closedByUs = true; try { state.ws.close(); } catch (e) { /* noop */ } }
+    if (url) state.url = url;
+    const target = state.url || cfg.url;
+    /* 主动替换旧 socket：摘掉它的回调，避免旧 onclose 把新连接状态覆盖成「断链」 */
+    if (state.ws) {
+      try { state.ws.onclose = null; state.ws.onerror = null; state.ws.close(); } catch (e) { /* noop */ }
+    }
     state.closedByUs = false;
     let ws;
-    try { ws = new WebSocket(url); } catch (e) { scheduleRetry(); return; }
+    try { ws = new WebSocket(target); } catch (e) { scheduleRetry(); return; }
     state.ws = ws;
 
     ws.onopen = () => {
+      if (ws !== state.ws) return;
       if (state.attempts > 0) state.reconnects++;   /* 断线重连成功才累计 */
       state.attempts = 0;
       setStatus({ connected: true });
       startHeartbeat();
     };
     ws.onmessage = ev => {
+      if (ws !== state.ws) return;
       state.lastMsgAt = Date.now();
       state.msgCount++;
       let m;
@@ -86,9 +95,11 @@
       dispatch(m);
     };
     ws.onclose = () => {
+      if (ws !== state.ws) return;                 /* 过期连接：忽略，不重连 */
       stopHeartbeat();
       setStatus({ connected: false });
       if (!state.closedByUs && state.mode === 'ws') scheduleRetry();
+      state.closedByUs = false;
     };
     ws.onerror = () => { try { ws.close(); } catch (e) { /* noop */ } };
   }
@@ -100,7 +111,7 @@
     setStatus({});
     state.retryTimer = setTimeout(() => {
       state.retryTimer = null;
-      if (state.mode === 'ws') connect(cfg.url);
+      if (state.mode === 'ws') connect();        /* 不传 url：沿用 state.url（同域/显式覆盖都保留） */
     }, wait);
   }
 
@@ -117,7 +128,7 @@
   function stopHeartbeat() { clearInterval(state.hbTimer); state.hbTimer = null; }
 
   /* 服务端对 ping 回 {t:'pong'} 或协议层 pong 都算活 */
-  global.addEventListener('online', () => { if (state.mode === 'ws' && !state.connected) { state.attempts = 0; connect(cfg.url); } });
+  global.addEventListener('online', () => { if (state.mode === 'ws' && !state.connected) { state.attempts = 0; connect(); } });
   global.addEventListener('offline', () => { if (state.ws) { state.closedByUs = true; try { state.ws.close(); } catch (e) { /* noop */ } } });
 
   /* ---------------- 协议分发（v2，兼容 v1） ---------------- */

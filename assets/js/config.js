@@ -5,7 +5,8 @@
      'mock'  纯前端模拟（GitHub Pages 静态演示默认值）
      'ws'    连接实时桥接服务（server/bridge.js 或你的 EMS 网关）
    url:    WebSocket 地址；也可用 URL 参数临时覆盖：
-           index.html?ws=live              → 用本文件 url
+           index.html?ws=live              → 服务器部署时自动推导同域 /ws（https→wss），
+                                             本机开发仍用本文件 url（127.0.0.1:9001）
            index.html?ws=ws://10.0.0.5:9001/ws → 临时指向别的网关
            index.html?ws=mock              → 强制走内置模拟推送（演示用）
    ============================================================ */

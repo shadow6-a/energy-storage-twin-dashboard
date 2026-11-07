@@ -4,7 +4,7 @@
 
 [![在线 Demo](assets/mockups/00-cover.png)](https://shadow6-a.github.io/energy-storage-twin-dashboard/)
 
-![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![fault%20inject](https://img.shields.io/badge/fault%20inject-9%2F9%20passing-red) ![chaos%20e2e](https://img.shields.io/badge/chaos%20e2e-12%2F12%20passing-critical) ![version](https://img.shields.io/badge/version-v2.3.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
+![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![fault%20inject](https://img.shields.io/badge/fault%20inject-9%2F9%20passing-red) ![chaos%20e2e](https://img.shields.io/badge/chaos%20e2e-12%2F12%20passing-critical) ![version](https://img.shields.io/badge/version-v2.3.1--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（**零三方库、零构建、零 npm 依赖**），MQTT 直连真实 EMS，Playwright + PowerShell 回归门禁全程护栏。
 
@@ -121,6 +121,22 @@ cd deploy && docker compose up -d
 powershell -ExecutionPolicy Bypass -File tests/fault_inject.ps1   # kill 数据源→掉线→health 降级→恢复，9 断言
 powershell -ExecutionPolicy Bypass -File tests/soak.ps1 -Minutes 1440   # 24h 内存/FPS/延迟采样，堆增长超限自动失败
 ```
+
+### 内网 / 现场部署（隔离环境）
+
+```powershell
+# ① 整套静态站一键部署（详见 deploy/static/push.ps1）
+powershell -ExecutionPolicy Bypass -File deploy/static/push.ps1 -Target <内网IP> -User root -Key <密钥>
+
+# ② 内网隔离演练：拔网线 → 秒切本地推演 → 恢复平滑过渡（零外网依赖）
+powershell -ExecutionPolicy Bypass -File tests/link_drill.ps1            # 10 断言
+powershell -ExecutionPolicy Bypass -File tests/link_drill.ps1 -Manual     # 无浏览器自动化时的人工检查点
+
+# ③ 混沌演练指向内网 broker（默认脚本用公网 broker，隔离环境必须改）
+powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1 -MqttUrl mqtt://<内网broker>:1883
+```
+
+**接真实 WS**：前端 `?ws=live` 自动推导同域 `/ws`（https 自动 wss），把 `deploy/static/nginx-ws.conf.example` 放到 nginx 配置即可，前端零改动。关键补齐项是 `proxy_read_timeout 3600s`——默认 60 秒会掐断 WS 长连接。断链时角标转琥珀「重连 Ns」、本地推演继续抖动，恢复后按实际 URL 重连（**不会退回 `127.0.0.1:9001` 默认值**）。
 
 ## 免责边界
 

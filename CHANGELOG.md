@@ -3,6 +3,28 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.3.1-prototype（2026-11-07）
+
+**内网部署与断链恢复加固**（现场演练中暴露的两个真 bug）。
+
+### 1. `?ws=live` 同域推导（`assets/js/app.js` + `config.js`）
+- 服务器部署时自动推导 `(ws|wss)://<location.host>/ws`，配合 nginx `location /ws` 反代；https 自动 wss
+- 本机开发（静态端口 ≠ 9001）仍回退 `ws://127.0.0.1:9001/ws`，显式 `?ws=ws://...` 覆盖不变
+- 修复前：`?ws=live` 写死连访问者本机 `127.0.0.1:9001`，nginx 反代根本吃不到流量
+
+### 2. 重连状态机修复（`assets/js/dataio.js`）
+- `scheduleRetry()` / `online` 事件改用 `state.url`（实际连接地址），不再退回 `cfg.url` 默认值——断线后必须连回同一个网关
+- 主动替换 socket 时摘掉旧连接回调 + 所有事件处理器校验 `ws === state.ws`，旧 `onclose` 不再覆盖新连接状态 / 误排重连
+- `status()` 暴露 `url`，演练可直接断言重连目标
+
+### 3. 内网隔离演练（`tests/link_drill.ps1`，10 断言全 PASS）
+零外网依赖（本机 CSV 桥接 + `tests/tools/http-static.js` 零依赖静态服务器 + 浏览器），模拟拔网线：
+实时 → **角标琥珀「重连 Ns」+ 本地推演继续抖动**（不冻结、不显示脏数据）→ 重启桥接 → **4 秒内重连**、角标回绿、scada 帧接管、`reconnects` 计数 +1、重连 URL 保持原地址。
+内网无 playwright-cli 时可用 `-Manual` 打印人工检查点。
+
+### 4. nginx WS 反代示例（`deploy/static/nginx-ws.conf.example`）
+在你给的 Upgrade/Connection 片段上补齐 `proxy_read_timeout 3600s`（默认 60s 会掐断 WS）、`proxy_buffering off`、Host/X-Forwarded 头，并透传 `/health`、`/metrics`（后者建议内网 ACL）。
+
 ## v2.3.0-prototype（2026-11-07）
 
 **混沌工程 + 可观测性深化**：对数据链路下狠手——乱序迟到旧数据、周期性强拆 MQTT 链路，全部有指标可见、有断言兜底。

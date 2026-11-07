@@ -48,3 +48,4 @@ if command -v curl >/dev/null 2>&1 && [ "${SKIP_SMOKE:-0}" != "1" ]; then
 fi
 echo "[install] done. NOTE: static-only deploy has no WS backend;"
 echo "           '?ws=live' falls back to local simulation (amber badge). Run bridge.js + reverse proxy /ws for real-time."
+echo "[install] for real WS: see deploy/static/nginx-ws.conf.example (same-origin /ws + 3600s timeout)."

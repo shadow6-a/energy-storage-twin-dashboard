@@ -1,0 +1,32 @@
+# 接真实 WS 时替换 install.sh 生成的 vhost（或覆盖 /etc/nginx/conf.d/ess-twin.conf）
+# 前端 ?ws=live 会自动推导同域 /ws（https 自动 wss），无需改前端代码。
+# 桥接：node server/bridge.js 9001 --mqtt ...（本机 127.0.0.1:9001）
+server {
+    listen 80;
+    server_name _;
+    root /var/www/ess-twin;
+    index index.html;
+
+    location / { try_files $uri $uri/ =404; }
+    location ~* \.(png|jpg|gif|svg|js|css|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location /ws {
+        proxy_pass http://127.0.0.1:9001;          # 不带结尾 /，保留原始 /ws 路径
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 3600s;                 # 默认 60s 会把 WS 长连接掐断
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+
+    # 可选：探活与指标透传（/metrics 建议内网限制访问）
+    location = /health  { proxy_pass http://127.0.0.1:9001/health; }
+    location = /metrics { proxy_pass http://127.0.0.1:9001/metrics; allow 10.0.0.0/8; deny all; }
+}
