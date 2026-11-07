@@ -1,22 +1,31 @@
 # 储能电站集群 · 数字孪生调度大屏
 
-![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![version](https://img.shields.io/badge/version-v2.0.0--prototype-orange)
+### 👉 [在线体验 Demo](https://shadow6-a.github.io/energy-storage-twin-dashboard/) （免安装、免注册）
 
-工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（零三方库），Playwright + PowerShell 回归门禁全程护栏。
+[![在线 Demo](assets/mockups/00-cover.png)](https://shadow6-a.github.io/energy-storage-twin-dashboard/)
 
-## 在线 Demo
+![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![version](https://img.shields.io/badge/version-v2.1.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
 
-纯静态、零构建、零依赖——**push 即自动发布**（`.github/workflows/deploy-pages.yml`）。首次启用：仓库 **Settings → Pages → Source 选「GitHub Actions」**，之后每次 push `main` 或打 `v*` tag 都会重新部署。
+工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（**零三方库、零构建、零 npm 依赖**），MQTT 直连真实 EMS，Playwright + PowerShell 回归门禁全程护栏。
 
-**https://shadow6-a.github.io/energy-storage-twin-dashboard/**
+## 实时数据动图（15 秒，MQTT 驱动）
 
-## 演示动图（15 秒，一次键盘流跑完全流程）
+![演示：绿角标实时链路 → 秒级功率跳动 → MQTT 告警实时进账 → 定位下钻 → 确认回写](assets/img/demo.gif)
 
-![演示：L0 总览 → 下钻 C-07 → 确认/闭环 → 批量闭环 → Ctrl+Z 撤销 → 审计留痕 → 驾驶舱](assets/img/demo.gif)
-
-> L0 总览 → `Space` 暂停 → 告警定位自动下钻到簇 C-07（压差 46mV / 36.9℃ 可见）→ 确认 → 闭环 → 批量勾选 2 条闭环（未闭环 8→5）→ `Ctrl+Z` 撤销（回跳 8）→ `A` 审计留痕（含撤销本身）→ `C` 驾驶舱模式
+> 顶栏角标 **「实时」转绿** → 8 站功率/曲线秒级跳动（S06 通信中断被判掉线，在线 7/8）→ 第三方系统经 MQTT 推送一条紧急告警，台账 **未闭环 9→10、紧急 2→3** 秒级同步 → 一键定位下钻到簇 C-07 → 确认回写（落盘 `ops.jsonl` 并发布 `<prefix>/ops` 给 EMS）。
 >
-> 录制脚本 `tests/tools/demo-gif/`（Playwright 逐帧 + Pillow 合成，无 ffmpeg 依赖），可一键复现。
+> 这与线上 Demo 的静态 mock 是同一份前端——**只差一个 `?ws=live` 参数**。录制：`tests/tools/demo-gif/record-live.ps1` + `compose-live.py`（Playwright 逐帧 + Pillow 合成，无 ffmpeg 依赖）。
+
+## 在线 Demo 的部署方式
+
+纯静态、零构建——**push 即自动发布**（`.github/workflows/deploy-pages.yml`）。之后每次 push `main` 或打 `v*` tag 都会重新部署。
+
+```bash
+# 想在自己的机器上跑实时链路（需要 MQTT broker）
+node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
+node server/mqtt-sim.js --prefix ess          # 无 EMS 时的替身，1Hz 遥测 + 随机告警
+# 浏览器：index.html?ws=live   →  角标转绿「实时」
+```
 
 ## 界面速览
 
