@@ -21,6 +21,10 @@ if (-not (Test-Path $tar)) {
   python (Join-Path $PSScriptRoot 'pack.py')
 }
 if (-not (Test-Path $tar)) { throw "pack failed: $tar" }
+# Self-heal: git checkout on Windows may turn install.sh into CRLF (bash would fail on server).
+$raw = [IO.File]::ReadAllBytes($inst)
+$txt = [Text.Encoding]::UTF8.GetString($raw).TrimStart([char]0xFEFF).Replace("`r`n", "`n")
+[IO.File]::WriteAllText($inst, $txt, (New-Object Text.UTF8Encoding($false)))
 if (-not (Get-Command scp -ErrorAction SilentlyContinue)) { throw 'scp not found (install OpenSSH client)' }
 if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) { throw 'ssh not found (install OpenSSH client)' }
 
