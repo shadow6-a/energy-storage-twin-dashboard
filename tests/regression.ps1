@@ -7,6 +7,7 @@
 # ============================================================
 param([int]$Port = 8790)
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8   # v2.0: playwright-cli 输出 UTF-8，与控制台代码页无关化（ detached/cmd 调用下中文断言不误判）
 $fail = 0
 
 function Assert([bool]$cond, [string]$msg, [string]$detail = '') {

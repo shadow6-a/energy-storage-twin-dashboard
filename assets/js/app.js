@@ -119,11 +119,14 @@
   function refreshLive() {
     const nowH = DATA.nowHours();
     const base = DATA.planAt(nowH);
+    /* v2.0：实时链路已连接时指标由 scada 帧接管，本地只做派生（告警计数/着色）不再推演 */
+    const live = DataIO.status().mode === 'ws' && DataIO.status().connected;
     DATA.STATIONS.forEach((st, i) => {
       const list = DATA.ALERTS.filter(x => x.st === st.id);
       st.openAlerts = list.filter(x => x.status < 2).length;
       st.hasCrit = list.some(x => x.status < 2 && x.lv === 'crit');
       st.totalClusters = st.cabins * 12;
+      if (live) return;
       if (st.comm === 'offline') {
         st.power = 0;
         st.status = 'offline';
@@ -153,7 +156,10 @@
   const getCluster = () => {
     const st = getStation(), cab = getCabin();
     if (!st || !cab || !state.clusterId) return null;
-    return DATA.clusterOf(st.id, state.cabinIndex, state.clusterId);
+    const cl = DATA.clusterOf(st.id, state.cabinIndex, state.clusterId);
+    /* v2.0：实时链路有该簇的推送数据（soc/soh/temp/cells）时覆盖模拟值 */
+    const lv = DataIO.clusterFor(st.id, state.cabinIndex, state.clusterId);
+    return lv ? Object.assign(cl, lv) : cl;
   };
 
   function regionPower() {
@@ -419,6 +425,7 @@
     a.status = to;
     pushUndo(actName + ' ' + a.id, [{ id: a.id, from, to }]);
     auditAdd(actName, a.id + ' · ' + String(a.text || '').slice(0, 20), '成功');
+    DataIO.sendOp(to === 2 ? 'close' : 'ack', a.id);   /* v2.0：实时链路下回写后端（断线静默丢弃，本地审计不受影响） */
     afterAlertChange();
     if (!silent) toast(actName + ' · ' + a.id + (undoStack.length ? '（Ctrl+Z 可撤销）' : ''));
     return true;
@@ -472,6 +479,7 @@
     }
     pushUndo(actName, items);
     auditAdd(actName, items.length + ' 条告警（' + items.map(i => i.id).join('、') + '）', '成功');
+    DataIO.sendOp(kind === 'ack' ? 'ack' : 'close', items.map(i => i.id));   /* v2.0：批量处置回写 */
     state.picked.clear();
     afterAlertChange();
     toast(actName + '完成 · ' + items.length + ' 条（Ctrl+Z 可撤销）');
@@ -485,6 +493,7 @@
       if (a) a.status = it.from;
     });
     auditAdd('撤销', rec.label + ' · ' + rec.items.length + ' 条', '已恢复原状态');
+    DataIO.sendOp('undo', rec.items.map(i => i.id));   /* v2.0：撤销回写 */
     afterAlertChange();
     toast('已撤销：' + rec.label + '（' + rec.items.length + ' 条）', 'ok');
   }
@@ -651,7 +660,8 @@
       meta.textContent = '对照';
       meta.title = '主图对照：计划 vs 实际';
 
-      const s = DATA.buildSeries(st);
+      /* v2.0：实时链路推送过该站 24h 曲线时用真实数据，否则本地推演（L0 时 st 为 null，曲线走全集群） */
+      const s = (st && DataIO.historyFor(st.id)) || DATA.buildSeries(st);
       const factor = strategyFactor();
       const plan = s.plan.map(v => +(v * factor).toFixed(2));
 
@@ -1787,36 +1797,102 @@
   }
 
   /* ================= 启动 ================= */
-  /* v1.2：模拟 WS 数据源接入（?ws=mock，hz=N 调频率、chaos=1 附随机告警流）。
-     真实接入时仅把 DATA.MockWS 换成原生 WebSocket——消息协议即接口边界，消费逻辑不变。
-     防御：SCADA 高频推送下 render 节流至 ≤2Hz；告警池上限 40 条防无限增长。 */
+  /* v2.0 数据链路接入：消息协议即接口边界（docs/data-contract.md）。
+     三种模式：
+       ?ws=mock        内置模拟推送（演示；hz=N 调频率、chaos=1 附随机告警流）
+       ?ws=live        连 config.js 里的桥接服务
+       ?ws=ws://...    临时指向任意网关
+       缺省             按 config.js source（'mock'=纯静态演示 / 'ws'=生产实时）
+     防御：高频推送下渲染节流 ≤2Hz；告警池上限 40 条；坏帧丢弃计数（dataio.js）。 */
+  const LIVE_LV = { crit: '紧急', high: '重要', warn: '一般', info: '提示' };
+  let liveDirty = false, liveLast = 0;
+
+  function liveFlush() {
+    refreshLive();
+    renderHeader();
+    renderMetrics();
+    renderCharts();
+    renderBottom();
+    const sc = currentScene();
+    twin.setScene(sc, { keepCam: true, selectedId: state.level === 3 ? state.clusterId : null });
+  }
+
+  function handleLiveMsg(m) {
+    if (!m || typeof m !== 'object' || typeof m.t !== 'string') return;
+    if (m.t === 'scada') {
+      const list = Array.isArray(m.stations) ? m.stations : [m];
+      list.forEach(s => {
+        const st = DATA.stationById(s.id);
+        if (!st) return;
+        if (typeof s.power === 'number' && isFinite(s.power)) st.power = s.power;
+        if (typeof s.soc === 'number' && isFinite(s.soc)) st.soc = s.soc;
+        if (typeof s.soh === 'number' && isFinite(s.soh)) st.soh = s.soh;
+        if (typeof s.temp === 'number' && isFinite(s.temp)) st.temp = s.temp;
+        if (s.status) st.status = s.status;
+        if (s.comm) st.comm = s.comm;
+        liveDirty = true;
+      });
+    } else if (m.t === 'alert' && (m.alert || m.id)) {
+      const a = m.alert || m;
+      if (DATA.ALERTS.length >= 40) DATA.ALERTS.shift();
+      DATA.ALERTS.push({ id: a.id, st: a.st, lv: a.lv, lvName: LIVE_LV[a.lv] || a.lv, dev: a.dev || '遥测', text: a.text, time: a.time || DATA.hm(new Date()), age: 0, status: 0 });
+      renderAlerts(); renderStations(); syncCritPulse(); applyScene();
+      liveDirty = true;
+    } else if (m.t === 'alertAck' || m.t === 'alertState') {
+      const a = DATA.ALERTS.find(x => x.id === m.id);
+      const to = m.t === 'alertAck' ? 1 : m.status;
+      if (a && typeof to === 'number' && a.status !== to) {
+        a.status = to;
+        renderAlerts(); renderStations(); syncCritPulse();
+        liveDirty = true;
+      }
+    } else if (m.t === 'history' || m.t === 'cluster') {
+      liveDirty = true;   /* 缓存已由 DataIO 落 Map，此处只需触发重渲 */
+    }
+    /* hello / ping / pong：链路层，无需处理 */
+    const now = performance.now();
+    if (liveDirty && now - liveLast >= 500) { liveDirty = false; liveLast = now; liveFlush(); }  // 节流：10Hz 推送 → 2Hz 渲染
+  }
+
+  /* 顶栏数据链路角标：演示数据 / 模拟推送 / 实时 / 重连 Ns */
+  function renderSrcBadge() {
+    const el = document.getElementById('hdrSrc');
+    if (!el) return;
+    const s = DataIO.status();
+    if (s.mode === 'ws') {
+      if (s.connected) { el.textContent = '实时'; el.className = 'ok'; el.title = '实时链路已连接（' + s.msgCount + ' 帧）'; }
+      else { el.textContent = '重连 ' + s.nextRetrySec + 's'; el.className = 'warn'; el.title = '链路断开，指数退避重连中'; }
+    } else if (s.mode === 'mock') {
+      el.textContent = '模拟推送'; el.className = 'warn'; el.title = '?ws=mock 演示推送';
+    } else {
+      el.textContent = '演示数据'; el.className = 'dim'; el.title = '纯静态演示（config.js source 改 ws 接真实数据）';
+    }
+  }
+
   function connectLive() {
     const q = new URLSearchParams(location.search);
-    if (q.get('ws') !== 'mock') return null;
-    const hz = Math.min(20, parseInt(q.get('hz') || '2', 10) || 2);
-    const ws = new DATA.MockWS(hz, q.get('chaos') === '1').connect();
-    const LV = { crit: '紧急', high: '重要', warn: '一般', info: '提示' };
-    let dirty = false, last = 0;
-    const flush = () => { refreshLive(); renderHeader(); renderMetrics(); renderCharts(); renderBottom(); };
-    ws.onmessage = e => {
-      const m = JSON.parse(e.data);
-      if (m.t === 'scada') {
-        const st = DATA.stationById(m.id);
-        if (!st) return;
-        st.soc = m.soc; st.power = m.power;
-        dirty = true;
-      } else if (m.t === 'alert') {
-        if (DATA.ALERTS.length >= 40) DATA.ALERTS.shift();
-        DATA.ALERTS.push({ id: m.id, st: m.st, lv: m.lv, lvName: LV[m.lv] || m.lv, dev: m.dev || '遥测', text: m.text, time: DATA.hm(new Date()), age: 0, status: 0 });
-        renderAlerts(); renderStations(); syncCritPulse(); applyScene();
-      } else if (m.t === 'alertAck') {
-        const a = DATA.ALERTS.find(x => x.id === m.id);
-        if (a && a.status === 0) { a.status = 1; renderAlerts(); renderStations(); }
-      }
-      const now = performance.now();
-      if (dirty && now - last >= 500) { dirty = false; last = now; flush(); }  // 节流：10Hz 推送 → 2Hz 渲染
-    };
-    return ws;
+    const p = q.get('ws');
+    if (p === 'mock') {
+      DataIO.setModeMock();
+      renderSrcBadge();
+      const hz = Math.min(20, parseInt(q.get('hz') || '2', 10) || 2);
+      const ws = new DATA.MockWS(hz, q.get('chaos') === '1').connect();
+      ws.onmessage = e => { try { handleLiveMsg(JSON.parse(e.data)); } catch (err) { /* 坏帧丢弃 */ } };
+      return ws;
+    }
+    const urlOverride = (p && p !== 'live' && /^wss?:\/\//.test(p)) ? p : null;
+    const wantLive = p === 'live' || !!urlOverride || window.DATA_CONFIG.source === 'ws';
+    if (!wantLive) { DataIO.init({}); renderSrcBadge(); return null; }
+    DataIO.init({
+      onScada: stations => handleLiveMsg({ t: 'scada', stations }),
+      onAlert: alert => handleLiveMsg({ t: 'alert', alert }),
+      onAlertState: m => handleLiveMsg(m),
+      onHistory: () => { liveDirty = true; },
+      onCluster: () => { liveDirty = true; },
+      onStatus: renderSrcBadge
+    }, urlOverride ? { mode: 'ws', url: urlOverride } : { mode: 'ws' });
+    renderSrcBadge();
+    return null;
   }
 
   function start() {
@@ -1827,6 +1903,7 @@
 
     tickClock();
     setInterval(tickClock, 1000);
+    setInterval(renderSrcBadge, 1000);   /* v2.0：链路角标（重连秒数倒计） */
 
     twin = new Twin($('#twinCanvas'), {
       onSelect: onSceneSelect,

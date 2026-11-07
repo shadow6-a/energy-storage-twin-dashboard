@@ -3,6 +3,36 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.0.0-prototype（2026-11-07）
+
+**真实数据链路落地**：前端数据层（WS 客户端 + 重连 + 链路角标）、零依赖桥接服务、协议契约文档、端到端测试 9/9。回归 86/86 PASS（mock 演示路径零破坏）。
+
+### 1. 前端数据层 `assets/js/dataio.js`（新）
+- `DataIO`：WebSocket 连接管理（指数退避 1s→30s、25s 心跳、页面 online/offline 事件）、协议 v2 解析（兼容 v1 单站帧）、坏帧丢弃计数
+- 数据落点与 `data.js` 同契约，UI 消费逻辑零改动；`historyFor()` / `clusterFor()` 覆盖本地推演
+- 处置回写：确认/闭环/撤销 → `{t:'op'}`（断线静默丢弃，本地审计不受影响）
+- 配置唯一入口 `assets/js/config.js`（`source: 'mock'|'ws'`），URL 参数 `?ws=live` / `?ws=ws://网关` 临时覆盖
+- 顶栏新增「数据链路」角标：演示数据(灰) / 模拟推送·重连 Ns(琥珀) / 实时(绿)
+- 实时接管后本地 2.5s 指标推演自动停用（`refreshLive` 只做告警派生）
+
+### 2. 桥接服务 `server/bridge.js`（新，Node 零依赖）
+- 手写 RFC6455 最小实现（握手/文本帧/心跳/关闭），`ws://:9001/ws` + `GET /health` 探活
+- 推送节拍：连接即 `hello`（全量对齐）+ 24h 曲线；每 1s `scada` 批量指标帧；每 30s `history`
+- CSV 数据源（`server/data/*.csv`，mtime 热加载）+ 随机游走模拟真实波动；接 MQTT/Modbus/数据库时只换适配器
+- 处置回写：`op` 帧 → 落盘 `data/ops.jsonl`（谁/何时/对哪条/结果）→ 广播 `alertState` 多端同步
+- 修了一个接入时序 bug：曲线缓存原来只在有客户端的 30s tick 填充，新页面要空等 30s——改为缓存无条件保活、接入即发
+
+### 3. 协议契约 `docs/data-contract.md`（新）
+- hello / scada / alert / alertState / history / cluster / op / ping 全帧格式 + 字段表 + 接入清单——贵方 EMS 网关照此实现即零改动对接
+
+### 4. 端到端测试 `tests/live_e2e.ps1`（新，9 断言）
+- bridge 探活 → WS 连接 → 角标 → 秒级推送（7/8 站变化）→ offline 站 0 功率 → 96 点曲线 → 回写落盘 → 断线降级「重连 Ns」→ 自动恢复「实时」
+- 自带静态服务器（:8932），不依赖外部演示服务
+
+### 5. 测试基建修复
+- `regression.ps1` / `live_e2e.ps1` 顶部声明 `[Console]::OutputEncoding = UTF8`：detached/cmd 调用时 playwright-cli 的 UTF-8 输出不再被 GBK 误解码（曾致中文匹配断言假阴性）
+- 资源版本参数统一 `?v=2.0.0`（`dataio.js` 曾被浏览器缓存旧版导致链路"看起来没通"）
+
 ## v1.3.4-prototype（2026-11-07）
 
 **对外发布准备：GitHub Pages 自动部署 + README 门面重排 + 动图减重**。

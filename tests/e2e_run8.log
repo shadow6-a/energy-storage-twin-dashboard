@@ -1,0 +1,13 @@
+[e2e] bridge already running, reuse
+  PASS  bridge /health
+  DEBUG last={"badge":"实时","mode":"ws","connected":true}
+  PASS  websocket connected (mode=ws) within 1s
+  PASS  topbar badge = live
+  PASS  per-second push flowing (7/8 stations changed in 3s)
+  PASS  offline station (S06) forced to 0 MW
+  PASS  history 24h frame took over main chart (96 pts)
+  PASS  writeback landed in ops.jsonl (ack)
+  PASS  disconnect degrade: badge switched to retry state
+  PASS  auto reconnect restored live link
+
+[e2e] done, failed = 0

@@ -1,0 +1,4 @@
+[e2e] bridge already running, reuse
+  PASS  bridge /health
+  PASS  websocket connected (mode=ws)
+  FAIL  topbar badge = live

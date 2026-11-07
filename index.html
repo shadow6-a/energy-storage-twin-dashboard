@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>苏南区域储能电站集群 · 数字孪生调度大屏</title>
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-<link rel="stylesheet" href="assets/css/tokens.css?v=1.3.2">
-<link rel="stylesheet" href="assets/css/components.css?v=1.3.2">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=1.3.2">
+<link rel="stylesheet" href="assets/css/tokens.css?v=2.0.0">
+<link rel="stylesheet" href="assets/css/components.css?v=2.0.0">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=2.0.0">
 </head>
 <body>
 
@@ -33,6 +33,10 @@
         <label>通信在线</label>
         <b class="ok" id="hdrComm">8/8<i>站</i></b>
       </div>
+      <div class="tb-kpi">
+        <label>数据链路</label>
+        <b class="dim" id="hdrSrc" title="数据来源状态">演示数据</b>
+      </div>
       <div class="tb-clock">
         <b id="clockTime">--:--:--</b>
         <span id="clockDate">2026-11-05 周四</span>
@@ -40,7 +44,7 @@
       <div class="nav-more" id="navMore">
         <button class="tool icon" id="btnNavMore" title="更多：设计规范 / 交互流程 / 分层稿 / 方案叙事">☰</button>
         <div class="nav-menu" id="navMenu" hidden>
-          <span class="ver">v1.3-prototype</span>
+          <span class="ver">v2.0-prototype</span>
           <a href="#" id="navAudit" role="button">操作审计 <i class="n" id="auditCount">0</i></a>
           <a href="components.html">设计规范</a>
           <a href="flow.html">交互流程</a>
@@ -334,10 +338,12 @@
 
 <div class="toast-wrap" id="toasts"></div>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/charts.js"></script>
-<script src="assets/js/twin.js"></script>
-<script src="assets/js/scenes.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/config.js?v=2.0.0"></script>
+<script src="assets/js/dataio.js?v=2.0.0"></script>
+<script src="assets/js/data.js?v=2.0.0"></script>
+<script src="assets/js/charts.js?v=2.0.0"></script>
+<script src="assets/js/twin.js?v=2.0.0"></script>
+<script src="assets/js/scenes.js?v=2.0.0"></script>
+<script src="assets/js/app.js?v=2.0.0"></script>
 </body>
 </html>
