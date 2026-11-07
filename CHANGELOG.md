@@ -3,6 +3,22 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v1.3.4-prototype（2026-11-07）
+
+**对外发布准备：GitHub Pages 自动部署 + README 门面重排 + 动图减重**。
+
+### GitHub Pages
+- 新增 `.github/workflows/deploy-pages.yml`：push `main`/`master`、打 `v*` tag 或手动触发 → `actions/configure-pages` + `upload-pages-artifact` + `deploy-pages`
+- 全站资源均为相对路径（已扫描确认无 `src="/`、`href="/`、`url(/`），可直接跑在 `https://<user>.github.io/<repo>/` 子路径下
+- 首次启用需在仓库 Settings → Pages → Source 选「GitHub Actions」
+
+### README 门面
+- 首屏顺序改为：徽章 → 一句话定位 → **在线 Demo 入口** → **15 秒动图** → **六张界面速览**（L0 总览 / 下钻 C-07 / 批量处置 / 审计抽屉 / 驾驶舱 / 交互稿）
+- 截图重新以 1920×1080 采集，转 JPEG q88 + 1600px 宽：6 张共 792KB
+
+### 动图减重
+- 22 帧、15.4 秒：1280 宽 256 色 5.3MB → **880 宽 128 色 1.82MB**（深色 UI 无可视色带），`tests/tools/demo-gif/compose.py` 同步更新
+
 ## v1.3.3-prototype（2026-11-06）
 
 **深钻态趋势面板头裁剪修复 + 演示 GIF 落仓 + 台账 tag 封板**，回归 86/86 PASS。
