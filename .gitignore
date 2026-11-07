@@ -10,3 +10,4 @@ _gif/
 .playwright-cli/
 _runs.json
 tests/soak-latest.csv
+dist/
