@@ -103,6 +103,10 @@ powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1   # 12 断言
 
 ![soak 曲线](docs/img/soak-curve.svg)
 
+**并排头图**（大屏截图 × 可观测曲线，发布 / 汇报用一张图说清「能看 + 能管」）：
+
+![实时大屏与可观测曲线](docs/img/hero-compare.png)
+
 ### Prometheus + Grafana（一键联动）
 
 ```bash
