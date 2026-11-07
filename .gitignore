@@ -9,3 +9,4 @@ server/_*.out
 _gif/
 .playwright-cli/
 _runs.json
+tests/soak-latest.csv

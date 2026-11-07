@@ -504,11 +504,13 @@ setInterval(() => {
   M.set('ess_bridge_eventloop_lag_ms', eventLoopLagMs);
 }, 5000);
 
-/* 事件循环延迟探针（Node 侧卡顿直接可见） */
+/* 事件循环延迟探针（每拍实际触发时刻 vs 计划时刻的差，即真实 lag） */
 let eventLoopLagMs = 0;
-const lagBase = process.hrtime.bigint();
+let lagBase = process.hrtime.bigint();
 setInterval(() => {
-  eventLoopLagMs = Math.max(0, Math.round(Number(process.hrtime.bigint() - lagBase) / 1e6 - 1000));
+  const now = process.hrtime.bigint();
+  eventLoopLagMs = Math.max(0, Math.round(Number(now - lagBase) / 1e6 - 1000));
+  lagBase = now;
 }, 1000);
 
 /* 新告警注入演示：向 server/data/alerts.csv 追加一行并保存，10s 内全端弹出台账 */
