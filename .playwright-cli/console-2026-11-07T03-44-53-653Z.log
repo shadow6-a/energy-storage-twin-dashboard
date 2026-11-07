@@ -1,0 +1,4 @@
+[     226ms] TypeError: Cannot read properties of null (reading 'id')
+    at renderCharts (http://127.0.0.1:8931/assets/js/app.js:664:38)
+    at renderAll (http://127.0.0.1:8931/assets/js/app.js:1467:5)
+    at HTMLDocument.start (http://127.0.0.1:8931/assets/js/app.js:1920:5)

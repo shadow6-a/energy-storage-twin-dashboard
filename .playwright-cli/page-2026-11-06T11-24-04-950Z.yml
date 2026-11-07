@@ -1,0 +1,372 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 方案说明
+      - generic [ref=e5]: SOLUTION BRIEF · V0.9.1
+    - generic [ref=e6]:
+      - link "TL;DR 三个核心价值" [ref=e7] [cursor=pointer]:
+        - /url: "#s0"
+        - generic [ref=e8]: TL;DR
+        - text: 三个核心价值
+      - link "01 场景与运维痛点" [ref=e9] [cursor=pointer]:
+        - /url: "#s1"
+        - generic [ref=e10]: "01"
+        - text: 场景与运维痛点
+      - link "02 与通用大屏方案对比" [ref=e11] [cursor=pointer]:
+        - /url: "#s2"
+        - generic [ref=e12]: "02"
+        - text: 与通用大屏方案对比
+      - link "03 业务约束与设计响应" [ref=e13] [cursor=pointer]:
+        - /url: "#s3"
+        - generic [ref=e14]: "03"
+        - text: 业务约束与设计响应
+      - link "04 核心能力清单" [ref=e15] [cursor=pointer]:
+        - /url: "#s4"
+        - generic [ref=e16]: "04"
+        - text: 核心能力清单
+      - link "05 边界与免责声明" [ref=e17] [cursor=pointer]:
+        - /url: "#s5"
+        - generic [ref=e18]: "05"
+        - text: 边界与免责声明
+      - link "06 两条落地路线" [ref=e19] [cursor=pointer]:
+        - /url: "#s6"
+        - generic [ref=e20]: "06"
+        - text: 两条落地路线
+      - link "07 数据对接与技术边界" [ref=e21] [cursor=pointer]:
+        - /url: "#s7"
+        - generic [ref=e22]: "07"
+        - text: 数据对接与技术边界
+      - link "08 交付物索引" [ref=e23] [cursor=pointer]:
+        - /url: "#s8"
+        - generic [ref=e24]: "08"
+        - text: 交付物索引
+      - link "09 交付时序 Gantt" [ref=e25] [cursor=pointer]:
+        - /url: "#s9"
+        - generic [ref=e26]: "09"
+        - text: 交付时序 Gantt
+    - link "— 返回调度大屏" [ref=e27] [cursor=pointer]:
+      - /url: index.html
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - text: 储能电站集群数字孪生调度大屏
+        - generic [ref=e31]: /
+        - generic [ref=e32]: 方案说明（甲方版）
+      - heading "储能集群运维数字孪生可视化前端原型" [level=1] [ref=e33]
+      - paragraph [ref=e34]:
+        - text: 面向储能电站与新能源集成商，可作为方案原型与 UI 验收基准， 支持对接 BMS / EMS 数据源，落地为控制室调度大屏。 本页从运维业务视角说明这套方案解决什么问题、与通用大屏的差异、以及落地边界—— 落地细节见
+        - link "feasibility.md" [ref=e35] [cursor=pointer]:
+          - /url: feasibility.md
+        - text: ，演示顺序见
+        - link "demo-script.md" [ref=e36] [cursor=pointer]:
+          - /url: demo-script.md
+        - text: 。
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]: TL;DR
+        - heading "三个核心价值（60 秒版）" [level=2] [ref=e40]
+        - generic [ref=e41]: FOR DECISION-MAKERS
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - text: 01 · 面向长期值守的视觉设计
+          - paragraph [ref=e44]: 针对 7×24 小时控制室值守场景：低饱和深色底 + 高对比关键数值，降低视觉干扰与值守人员视觉疲劳；告警信息四级色唯一且全局贯穿，永远优先突出；动效仅保留告警脉冲与功率链路，符合电力运维人员的读屏习惯，而非参观展示的炫技。
+        - generic [ref=e45]:
+          - text: 02 · 告警闭环 = 完整运维流转
+          - paragraph [ref=e46]: 未确认 → 确认 → 闭环 / 抑制，是完整的运维工单流转逻辑，不是简单提示弹窗；告警数据单向同步，保证台账、地图、舱体视图数据一致性，运维人员无需多界面核对信息——从一条告警定位到故障电池簇只需 4 次点击。
+        - generic [ref=e47]:
+          - text: 03 · 解耦设计，对接真实设备
+          - paragraph [ref=e48]: 模拟数据层与视图层分离，接口边界清晰（字段映射表已给出），可平滑对接现场 BMS / PCS / EMS 真实数据源；自研轻量 3D 性能可控，工控机核显即可运行——这是可演进的工程方案，不是只能看的原型。
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]: "01"
+        - heading "场景与运维痛点 → 方案响应" [level=2] [ref=e52]
+        - generic [ref=e53]: PAIN POINTS
+      - table [ref=e55]:
+        - rowgroup [ref=e56]:
+          - row [ref=e57]:
+            - columnheader "运维痛点" [ref=e58]
+            - columnheader "现状典型表现" [ref=e59]
+            - columnheader "本方案响应" [ref=e60]
+          - row [ref=e61]:
+            - cell "多站点分散，巡检成本高" [ref=e62]
+            - cell "逐站登录查看，无区域视图" [ref=e63]
+            - cell "L0 集群总览一屏容纳全部站点 SOC / 状态 / 功率流向，异常站点自动脉冲提示" [ref=e64]
+          - row [ref=e65]:
+            - cell "告警信息零散，多系统核对" [ref=e66]
+            - cell "BMS / PCS / EMS 各弹各的告警窗" [ref=e67]
+            - cell "统一告警台账 + 四级分级 + 状态机流转，台账/地图/舱体/簇面板单一数据源同步" [ref=e68]
+          - row [ref=e69]:
+            - cell "策略切换缺少直观推演" [ref=e70]
+            - cell "改策略后才能看到结果" [ref=e71]
+            - cell "切换削峰填谷 / 调频 / 备用，计划曲线即时重算——下发前即可推演全天充放电影响" [ref=e72]
+          - row [ref=e73]:
+            - cell "故障定位链条长" [ref=e74]
+            - cell "从告警到故障簇要跨三四个系统" [ref=e75]
+            - cell "告警一键定位 → 镜头下钻 → 舱体高亮 → 簇级 BMS 压差/温度直读，4 次点击 10 秒定位" [ref=e76]
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]: "02"
+        - heading "与通用大屏方案的对比优势" [level=2] [ref=e80]
+        - generic [ref=e81]: VS BI / LOW-CODE
+      - table [ref=e83]:
+        - rowgroup [ref=e84]:
+          - row [ref=e85]:
+            - columnheader "能力" [ref=e86]
+            - columnheader "传统 BI 大屏" [ref=e87]
+            - columnheader "通用低代码大屏" [ref=e88]
+            - columnheader "本方案" [ref=e89]
+          - row [ref=e90]:
+            - cell "业务逻辑" [ref=e91]
+            - cell "图表拼接，无业务语义" [ref=e92]
+            - cell "模板拖拽，逻辑靠脚本补丁" [ref=e93]
+            - cell "告警流转、调度策略切换为原生设计，绑定储能 EMS 运维流程" [ref=e94]
+          - row [ref=e95]:
+            - cell "告警状态机" [ref=e96]
+            - cell "红点提示，看过即丢" [ref=e97]
+            - cell "普遍缺失，或仅\"已读/未读\"" [ref=e98]
+            - cell "未确认 确认/闭环/抑制四态 + 排序置顶规则 + 抑制冲突处理" [ref=e99]
+          - row [ref=e100]:
+            - cell "三维能力" [ref=e101]
+            - cell "基本没有" [ref=e102]
+            - cell "弱，多为贴图旋转" [ref=e103]
+            - cell "自研 Canvas 3D：透视/拾取/镜头动画，支撑三级下钻孪生联动" [ref=e104]
+          - row [ref=e105]:
+            - cell "下钻联动" [ref=e106]
+            - cell "跳转到另一张报表" [ref=e107]
+            - cell "弹窗或钻取报表，指标不联动" [ref=e108]
+            - cell "空间与数据同步收敛：集群→站→舱→簇，右侧指标自动切换范围" [ref=e109]
+          - row [ref=e110]:
+            - cell "后续扩展" [ref=e111]
+            - cell "受报表引擎限制" [ref=e112]
+            - cell "组件模板受限，深度定制难" [ref=e113]
+            - cell "源码交付 + 组件规范，新增站点/告警类型按 4×4 矩阵扩展，风格可控" [ref=e114]
+          - row [ref=e115]:
+            - cell "数据容错" [ref=e116]
+            - cell "拿到数据直接渲染，断连即白屏" [ref=e117]
+            - cell "无时序容错概念" [ref=e118]
+            - cell "原生内置：断连降级（冻结视图 + 水印）、丢包兜底值、重复告警合并、时序按时刻对齐——详见 risk-mitigation.md" [ref=e119]
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - generic [ref=e122]: "03"
+        - heading "业务约束如何转化为设计响应" [level=2] [ref=e123]
+        - generic [ref=e124]: CONSTRAINTS → DESIGN
+      - generic [ref=e125]:
+        - generic [ref=e126]:
+          - paragraph [ref=e127]: 强光控制室 → 面板底色压深、关键数值高对比等宽字体（1.5m 距离可辨读；禁用大面积渐变避免环境反光——直接目标是降低值守人员 8 小时以上的视觉疲劳。
+          - paragraph [ref=e128]: 告警优先 → 四级告警色全局唯一且贯穿 2D/3D（信标脉冲、台账色条、舱体颜色、图表阈值共用一套语义），值班员不需要学习第二套颜色语言：异常信息永远最先被看到。
+        - generic [ref=e129]:
+          - paragraph [ref=e130]: 调度策略联动 → 策略不是贴在底部的开关：切换后计划曲线重算、链路流向速度变化、底部窗口同步——调度员获得的是直观推演能力，而非一个按钮。
+          - paragraph [ref=e131]: 下钻闭环 → 空间（L0→L3）与数据（集群→站→舱→簇）同步收敛，最终落到电池簇的可执行信息（压差、绝缘、循环），支撑"看到问题→定位问题→处置问题"的完整动作链，缩短故障定位时间。
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - generic [ref=e134]: "04"
+        - heading "核心能力清单（以锡山 2#舱 C-07 为例）" [level=2] [ref=e135]
+        - generic [ref=e136]: CAPABILITIES
+      - paragraph [ref=e138]: 告警数据一致性案例：一条「液冷支路流量不足」紧急告警，同步体现在 ① 地图信标（脉冲 + 角标）② 告警台账置顶（未确认，可确认→闭环）③ L1 站内视图 2#电池舱高亮 ④ L2 舱内 C-07 簇预警色 + 温度异常直读——数据单向同步，避免多界面核对不一致。
+      - table [ref=e140]:
+        - rowgroup [ref=e141]:
+          - row [ref=e142]:
+            - columnheader "能力" [ref=e143]
+            - columnheader "说明" [ref=e144]
+            - columnheader "对甲方的价值" [ref=e145]
+          - row [ref=e146]:
+            - cell "三级递进下钻" [ref=e147]
+            - cell "地图点位 → 站内舱体 → 电池簇 → BMS 单体，镜头动画与指标联动" [ref=e148]
+            - cell "少开系统、少切界面" [ref=e149]
+          - row [ref=e150]:
+            - cell "告警完整状态机" [ref=e151]
+            - cell "四态流转 + 置顶规则 + 抑制旁路，流程图见 flow.html" [ref=e152]
+            - cell "告警处置可追踪、可审计" [ref=e153]
+          - row [ref=e154]:
+            - cell "计划 vs 实际曲线" [ref=e155]
+            - cell "时间对齐，实际止于当前时刻；策略驱动计划重算" [ref=e156]
+            - cell "调度推演与复盘共用一张图" [ref=e157]
+          - row [ref=e158]:
+            - cell "AI 辅助决策" [ref=e159]
+            - cell "带置信度的根因推荐、收益构成、可采纳动作；AI 不直接改策略需人工确认" [ref=e160]
+            - cell "辅助而非替代值班判断，安全可控" [ref=e161]
+          - row [ref=e162]:
+            - cell "异常工况内置" [ref=e163]
+            - cell "全站通信中断 / 多告警并发 / 电池簇超温，URL 参数或演示面板触发" [ref=e164]
+            - cell "验收时即可检验异常表现" [ref=e165]
+          - row [ref=e166]:
+            - cell "组件规范" [ref=e167]
+            - cell "4×4 告警矩阵、控件库、3D 信标五态（components.html）" [ref=e168]
+            - cell "后续扩展不失控，风格统一" [ref=e169]
+    - generic [ref=e170]:
+      - generic [ref=e171]:
+        - generic [ref=e172]: "05"
+        - heading "边界与免责声明（请务必确认）" [level=2] [ref=e173]
+        - generic [ref=e174]: DISCLAIMER
+      - generic [ref=e175]:
+        - table [ref=e176]:
+          - rowgroup [ref=e177]:
+            - row [ref=e178]:
+              - columnheader "项" [ref=e179]
+              - columnheader "状态" [ref=e180]
+              - columnheader "说明" [ref=e181]
+            - row [ref=e182]:
+              - cell "版本定位" [ref=e183]
+              - cell "✓ 交互原型 / 业务验证原型" [ref=e184]
+              - cell "用于需求确认、UI 验收、交互评审——不是等保合规生产系统" [ref=e185]
+            - row [ref=e186]:
+              - cell "账号权限分级" [ref=e187]
+              - cell "❌ 暂无" [ref=e188]
+              - cell "上线对接企业认证，前端按角色显隐操作" [ref=e189]
+            - row [ref=e190]:
+              - cell "操作审计日志" [ref=e191]
+              - cell "❌ 暂无" [ref=e192]
+              - cell "确认/闭环/下发全量留痕，需后端" [ref=e193]
+            - row [ref=e194]:
+              - cell "告警短信 / 电话推送" [ref=e195]
+              - cell "❌ 暂无" [ref=e196]
+              - cell "对接平台告警总线，前端零改动" [ref=e197]
+            - row [ref=e198]:
+              - cell "历史数据库 / 报表" [ref=e199]
+              - cell "❌ 暂无" [ref=e200]
+              - cell "需后端存储与查询服务" [ref=e201]
+            - row [ref=e202]:
+              - cell "电力安全合规校验 / 等保适配" [ref=e203]
+              - cell "❌ 暂无" [ref=e204]
+              - cell "由后端平台承载" [ref=e205]
+            - row [ref=e206]:
+              - cell "演示数据" [ref=e207]
+              - cell "⚠️ 确定性模型" [ref=e208]
+              - cell "8 站 / 10+ 告警 / 24h 曲线均为演示数据，不代表真实运行数据" [ref=e209]
+            - row [ref=e210]:
+              - cell "主题体系" [ref=e211]
+              - cell "✓ 深色（工业值守标准）" [ref=e212]
+              - cell "当前版本仅提供深色主题；浅色报表主题已在设计系统 tokens 中预留扩展位（色彩令牌集中管理），可依据后续需求立项开发" [ref=e213]
+        - paragraph [ref=e214]:
+          - text: 明确边界的目的：把本原型定位为降低方案沟通成本的工具与验收基准。 而非拿来直接上电的成品——预期一致，后续合作才顺畅。详见
+          - link "feasibility.md 附录 A" [ref=e215] [cursor=pointer]:
+            - /url: feasibility.md
+          - text: 。
+    - generic [ref=e216]:
+      - generic [ref=e217]:
+        - generic [ref=e218]: "06"
+        - heading "两条落地路线" [level=2] [ref=e219]
+        - generic [ref=e220]: ROUTE A / ROUTE B
+      - generic [ref=e221]:
+        - generic [ref=e222]:
+          - text: 路线 A · 轻量落地（成本低，优先推荐）
+          - paragraph [ref=e223]: 适用于已有 EMS 后台的集成商：只需一套前端可视化页面。我方提供整套 UI + 交互源码 + 组件规范，贵方后端对接 MQTT / WebSocket 数据源。
+          - paragraph [ref=e224]:
+            - text: 交互逻辑、告警业务逻辑、UI 规范 100% 复用，对接工作量约 13–14 人天（详见
+            - link "quotation-outline.md" [ref=e225] [cursor=pointer]:
+              - /url: quotation-outline.md
+            - text: ）。
+        - generic [ref=e226]:
+          - text: 路线 B · 完整方案
+          - paragraph [ref=e227]: 适用于暂无成熟 EMS 的情况：联合配套后端开发，补齐权限分级、历史存储、告警推送、审计日志，替换高精度 3D 模型，形成完整调度工作站。
+          - paragraph [ref=e228]:
+            - text: 对应升级路径 ③–⑤（见
+            - link "feasibility.md 第 8 节" [ref=e229] [cursor=pointer]:
+              - /url: feasibility.md
+            - text: ），工作量约 40–45 人天。
+    - generic [ref=e230]:
+      - generic [ref=e231]:
+        - generic [ref=e232]: "07"
+        - heading "数据对接与技术边界" [level=2] [ref=e233]
+        - generic [ref=e234]: INTEGRATION
+      - generic [ref=e235]:
+        - generic [ref=e236]:
+          - paragraph [ref=e237]: 接口已预留：界面层只消费 data.js 的聚合接口（STATIONS / ALERTS / planAt / buildSeries / aggregate）。对接真定 BMS/PCS/EMS 时，仅需替换该层为 WebSocket 推送或 REST 轮询，2.5s 数据帧与全部渲染逻辑无需改动。
+          - paragraph [ref=e238]:
+            - text: 字段映射表：站级 SOC/温度/功率、告警等级/状态、计划/实际曲线、簇级压差/电流等核心字段与设备侧来源的对应关系，已在
+            - link "feasibility.md 第 2 节" [ref=e239] [cursor=pointer]:
+              - /url: feasibility.md
+            - text: 给出。
+        - generic [ref=e240]:
+          - paragraph [ref=e241]: 3D 方案边界：自研 Canvas 轻量引擎适合点位/舱体/簇级抽象表达（正是调度场景所需），不承接设备级 CAD 精度模型；场景描述层与引擎解耦，可平滑升级 Three.js 并保留场景结构。
+          - paragraph [ref=e242]: 性能基线：≤30 站流畅、60fps、无独立显卡要求、全页 JS ≤ 130KB 且断网可查看静态视图/流程图/规范——工控机即可部署（配置要求见 feasibility.md 第 3 节）。
+          - paragraph [ref=e243]: 架构红利 · 场景与引擎解耦：拓扑 Canvas 与全部图表/SVG 均按容器实际尺寸渲染，页面采用流式网格布局（固定 px 字号不随视口缩放压缩）——1024 笔记本到 4K 拼接屏同一套代码零改动适配，字号可读性始终恒定。
+    - generic [ref=e244]:
+      - generic [ref=e245]:
+        - generic [ref=e246]: "08"
+        - heading "交付物索引" [level=2] [ref=e247]
+        - generic [ref=e248]: DELIVERABLES
+      - table [ref=e250]:
+        - rowgroup [ref=e251]:
+          - row [ref=e252]:
+            - columnheader "交付物" [ref=e253]
+            - columnheader "位置" [ref=e254]
+            - columnheader "用途" [ref=e255]
+          - row [ref=e256]:
+            - cell "大屏主视觉（可交互原型）" [ref=e257]
+            - cell "index.html" [ref=e258]
+            - cell "演示与验收基准，含演示导览面板" [ref=e259]
+          - row [ref=e260]:
+            - cell "落地可行性说明" [ref=e261]
+            - cell "feasibility.md" [ref=e262]
+            - cell "对接清单 / 性能基线 / 部署 / 风险 / 升级路径" [ref=e263]
+          - row [ref=e264]:
+            - cell "需求追踪表" [ref=e265]
+            - cell "requirement-trace.md" [ref=e266]
+            - cell "需求确认会上逐条打勾签认" [ref=e267]
+          - row [ref=e268]:
+            - cell "工作量分析" [ref=e269]
+            - cell "quotation-outline.md" [ref=e270]
+            - cell "复用 vs 从零开发成本对照" [ref=e271]
+          - row [ref=e272]:
+            - cell "演示脚本" [ref=e273]
+            - cell "demo-script.md" [ref=e274]
+            - cell "15 分钟甲方演示流程与话术" [ref=e275]
+          - row [ref=e276]:
+            - cell "组件资产化// 流程文档" [ref=e277]
+            - cell "components.html / flow.html" [ref=e278]
+            - cell "UI 规范与业务逻辑依据" [ref=e279]
+          - row [ref=e280]:
+            - cell "静态分层稿 ×7（4K PNG）" [ref=e281]
+            - cell "mockups.html / assets/mockups/" [ref=e282]
+            - cell "视觉交付基准 + Figma 结构" [ref=e283]
+          - row [ref=e284]:
+            - cell "封面海报 / 封面源文件" [ref=e285]
+            - cell "assets/mockups/00-cover.png / cover.html" [ref=e286]
+            - cell "方案封面" [ref=e287]
+          - row [ref=e288]:
+            - cell "使用说明" [ref=e289]
+            - cell "README.md" [ref=e290]
+            - cell "运行方式、操作手册、URL 参数" [ref=e291]
+    - generic [ref=e292]:
+      - generic [ref=e293]:
+        - generic [ref=e294]: "09"
+        - heading "交付时序 Gantt" [level=2] [ref=e295]
+        - generic [ref=e296]: 2026-11-05 · 单日迭代 T0–T8h
+      - generic [ref=e297]:
+        - img [ref=e298]:
+          - generic [ref=e300]:
+            - generic [ref=e301]: T0
+            - generic [ref=e302]: T1
+            - generic [ref=e303]: T2
+            - generic [ref=e304]: T3
+            - generic [ref=e305]: T4
+            - generic [ref=e306]: T5
+            - generic [ref=e307]: T6+
+          - generic [ref=e308]:
+            - generic [ref=e309]: ① 静态分层稿
+            - generic [ref=e310]: ② 交互流程图
+            - generic [ref=e311]: ③ 组件规范物料
+            - generic [ref=e312]: ④ 作品集叙事
+            - generic [ref=e313]: ⑤ 收口校验 · 打包
+          - generic [ref=e314]:
+            - generic [ref=e315]: 4K PNG ×7 · 动效参考
+            - generic [ref=e316]: Mermaid ×4 · 规则表
+            - generic [ref=e317]: 4×4 矩阵 · 控件 · 信标
+            - generic [ref=e318]: 甲方叙事 · 边界声明
+            - generic [ref=e319]: 9 项清单 · 演示导览 · 封面
+          - generic [ref=e326]:
+            - generic [ref=e327]: L0–L3 + 异常态稿
+            - generic [ref=e328]: 状态机 / 下钻 / 策略 / 边界
+          - generic [ref=e329]:
+            - generic [ref=e330]: 矩阵 · 控件库 · 信标五态
+            - generic [ref=e331]: 价值叙事 · 对比 · 免责
+            - generic [ref=e332]: 9 项验收全过 · 零报错
+          - generic [ref=e333]:
+            - generic [ref=e335]: 分层稿定稿
+            - generic [ref=e337]: v0.9.0 交付包封版
+          - generic [ref=e338]:
+            - generic [ref=e340]: 主产出
+            - generic [ref=e342]: 收口校验
+            - generic [ref=e344]: 里程碑
+        - paragraph [ref=e345]: 串行推进、阶段间交叠复用：分层稿先行锚定视觉基准，流程图与规范物料直接引用其标注坐标（三色对齐、零二次翻译）， 叙事沉淀为甲方可确认的能力清单与边界声明，最后 2 小时收口为 9 项可验证清单——每个阶段结束即实测校验，问题当段闭环。

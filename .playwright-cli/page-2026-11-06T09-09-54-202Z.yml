@@ -1,0 +1,256 @@
+- generic [ref=f5e2]:
+  - banner [ref=f5e3]:
+    - heading [level=1] [ref=f5e10]:
+      - text: 苏南区域储能电站集群
+      - emphasis [ref=f5e11]: ·
+      - text: 调度值守大屏
+    - generic [ref=f5e12]:
+      - generic [ref=f5e13]:
+        - generic [ref=f5e14]: 实时并网功率
+        - generic [ref=f5e15]: +131.5MW
+      - generic [ref=f5e16]:
+        - generic [ref=f5e17]: 通信在线
+        - generic [ref=f5e18]: 7/8站
+      - generic [ref=f5e19]:
+        - generic [ref=f5e20]: 17:09:54
+        - generic [ref=f5e21]: 2026-11-06 周五
+      - button "☰" [ref=f5e23] [cursor=pointer]
+      - button "切换驾驶舱模式" [ref=f5e24] [cursor=pointer]: ◱
+      - button "⇅" [ref=f5e25] [cursor=pointer]
+  - complementary [ref=f5e26]:
+    - generic [ref=f5e27]:
+      - generic [ref=f5e28]:
+        - heading "电站集群" [level=3] [ref=f5e30]
+        - generic [ref=f5e31]: 8 座
+      - generic [ref=f5e32]:
+        - generic [ref=f5e33]:
+          - button "全部 8" [ref=f5e34] [cursor=pointer]:
+            - generic [ref=f5e35]: 全部
+            - generic [ref=f5e36]: "8"
+          - button "告警 6" [ref=f5e37] [cursor=pointer]:
+            - generic [ref=f5e38]: 告警
+            - generic [ref=f5e39]: "6"
+          - button "离线 1" [ref=f5e40] [cursor=pointer]:
+            - generic [ref=f5e41]: 离线
+            - generic [ref=f5e42]: "1"
+        - generic [ref=f5e43]:
+          - button "无锡锡山 2 200 MWh 62.4%" [ref=f5e44] [cursor=pointer]:
+            - generic [ref=f5e46]:
+              - generic [ref=f5e47]:
+                - generic [ref=f5e48]: 无锡锡山
+                - generic [ref=f5e49]: "2"
+              - generic [ref=f5e50]: 200 MWh
+            - generic [ref=f5e51]: 62.4%
+          - button "苏州吴江 2 180 MWh 58.7%" [ref=f5e55] [cursor=pointer]:
+            - generic [ref=f5e57]:
+              - generic [ref=f5e58]:
+                - generic [ref=f5e59]: 苏州吴江
+                - generic [ref=f5e60]: "2"
+              - generic [ref=f5e61]: 180 MWh
+            - generic [ref=f5e62]: 58.7%
+          - button "常州金坛 1 160 MWh 71.2%" [ref=f5e66] [cursor=pointer]:
+            - generic [ref=f5e68]:
+              - generic [ref=f5e69]:
+                - generic [ref=f5e70]: 常州金坛
+                - generic [ref=f5e71]: "1"
+              - generic [ref=f5e72]: 160 MWh
+            - generic [ref=f5e73]: 71.2%
+          - button "南京江北 1 200 MWh 66.8%" [ref=f5e77] [cursor=pointer]:
+            - generic [ref=f5e79]:
+              - generic [ref=f5e80]:
+                - generic [ref=f5e81]: 南京江北
+                - generic [ref=f5e82]: "1"
+              - generic [ref=f5e83]: 200 MWh
+            - generic [ref=f5e84]: 66.8%
+          - button "镇江扬中 120 MWh 54.3%" [ref=f5e88] [cursor=pointer]:
+            - generic [ref=f5e90]:
+              - generic [ref=f5e91]: 镇江扬中
+              - generic [ref=f5e93]: 120 MWh
+            - generic [ref=f5e94]: 54.3%
+          - button "南通如东 1 100 MWh 48.6%" [ref=f5e98] [cursor=pointer]:
+            - generic [ref=f5e100]:
+              - generic [ref=f5e101]:
+                - generic [ref=f5e102]: 南通如东
+                - generic [ref=f5e103]: "1"
+              - generic [ref=f5e104]: 100 MWh
+            - generic [ref=f5e105]: 48.6%
+          - button "扬州仪征 140 MWh 69.5%" [ref=f5e109] [cursor=pointer]:
+            - generic [ref=f5e111]:
+              - generic [ref=f5e112]: 扬州仪征
+              - generic [ref=f5e114]: 140 MWh
+            - generic [ref=f5e115]: 69.5%
+          - button "泰州靖江 1 140 MWh 61.9%" [ref=f5e119] [cursor=pointer]:
+            - generic [ref=f5e121]:
+              - generic [ref=f5e122]:
+                - generic [ref=f5e123]: 泰州靖江
+                - generic [ref=f5e124]: "1"
+              - generic [ref=f5e125]: 140 MWh
+            - generic [ref=f5e126]: 61.9%
+  - main [ref=f5e130]:
+    - generic [ref=f5e131]:
+      - generic [ref=f5e134]:
+        - generic [ref=f5e135]: L0
+        - button "区域总览" [ref=f5e136]
+      - generic [ref=f5e137]:
+        - generic [ref=f5e138]:
+          - button "告警" [ref=f5e139] [cursor=pointer]
+          - button "链路" [ref=f5e140] [cursor=pointer]
+          - button "标注" [ref=f5e141] [cursor=pointer]
+        - button "2D" [ref=f5e142] [cursor=pointer]
+        - button "↺" [ref=f5e143] [cursor=pointer]
+      - generic [ref=f5e144]:
+        - generic [ref=f5e145]: 正常运行
+        - generic [ref=f5e147]: 放电中
+        - generic [ref=f5e149]: 告警
+        - generic [ref=f5e151]: 离线
+      - generic [ref=f5e153]: 拖拽旋转 · 滚轮缩放 · 右键平移
+  - complementary [ref=f5e155]:
+    - generic [ref=f5e156]:
+      - generic [ref=f5e157]:
+        - heading "核心指标" [level=3] [ref=f5e159]
+        - generic [ref=f5e160]: 区域集群
+      - generic [ref=f5e162]:
+        - generic [ref=f5e163]:
+          - generic [ref=f5e164]:
+            - generic [ref=f5e165]: 总 SOC
+            - generic [ref=f5e166]: WEIGHTED
+          - generic [ref=f5e167]: 62.5%
+          - generic [ref=f5e168]:
+            - text: 较昨日同时段
+            - emphasis [ref=f5e169]: +1.8%
+        - generic [ref=f5e172]:
+          - generic [ref=f5e173]:
+            - generic [ref=f5e174]: 总 SOH
+            - generic [ref=f5e175]: HEALTH
+          - generic [ref=f5e176]: 94.3%
+          - generic [ref=f5e177]: 最低 89.7% · 南通如东
+    - generic [ref=f5e178]:
+      - generic [ref=f5e179]:
+        - heading "告警台账" [level=3] [ref=f5e181]
+        - generic [ref=f5e182]: 未闭环 8
+        - button "批量" [ref=f5e183] [cursor=pointer]
+        - button "导出 CSV" [ref=f5e184] [cursor=pointer]
+      - generic [ref=f5e185]:
+        - generic [ref=f5e186]:
+          - button "未闭环 8" [ref=f5e187] [cursor=pointer]:
+            - text: 未闭环
+            - generic [ref=f5e188]: "8"
+          - button "全部 10" [ref=f5e189] [cursor=pointer]:
+            - text: 全部
+            - generic [ref=f5e190]: "10"
+          - button "紧急 2" [ref=f5e191] [cursor=pointer]:
+            - text: 紧急
+            - generic [ref=f5e192]: "2"
+          - button "重要 4" [ref=f5e193] [cursor=pointer]:
+            - text: 重要
+            - generic [ref=f5e194]: "4"
+        - list "按优先级排序：未确认 > 已确认 > 已闭环" [ref=f5e195]:
+          - listitem "紧急告警，未确认，单体电压极差 320mV，超阈值 200mV，持续 6 分钟" [ref=f5e196] [cursor=pointer]:
+            - generic [ref=f5e197]:
+              - generic [ref=f5e198]: 紧急
+              - generic [ref=f5e199]: 无锡锡山
+              - generic [ref=f5e200]: 未确认
+              - generic [ref=f5e201]:
+                - button "确认该紧急告警" [ref=f5e202]: ✓
+                - button "定位到告警站点" [ref=f5e203]: ➤
+            - generic "单体电压极差 320mV，超阈值 200mV，持续 6 分钟" [ref=f5e204]
+          - listitem "重要告警，未确认，冷却液出水温度 32.8℃，超告警阈值 30℃" [ref=f5e205] [cursor=pointer]:
+            - generic [ref=f5e206]:
+              - generic [ref=f5e207]: 重要
+              - generic [ref=f5e208]: 常州金坛
+              - generic [ref=f5e209]: 未确认
+              - generic [ref=f5e210]:
+                - button "确认该重要告警" [ref=f5e211]: ✓
+                - button "定位到告警站点" [ref=f5e212]: ➤
+            - generic "冷却液出水温度 32.8℃，超告警阈值 30℃" [ref=f5e213]
+          - listitem "重要告警，未确认，功率因数 0.92，低于考核下限 0.95，需调整无功出力" [ref=f5e214] [cursor=pointer]:
+            - generic [ref=f5e215]:
+              - generic [ref=f5e216]: 重要
+              - generic [ref=f5e217]: 无锡锡山
+              - generic [ref=f5e218]: 未确认
+              - generic [ref=f5e219]:
+                - button "确认该重要告警" [ref=f5e220]: ✓
+                - button "定位到告警站点" [ref=f5e221]: ➤
+            - generic "功率因数 0.92，低于考核下限 0.95，需调整无功出力" [ref=f5e222]
+          - listitem "重要告警，未确认，站控与调度主站通信中断，已切换就地控制策略" [ref=f5e223] [cursor=pointer]:
+            - generic [ref=f5e224]:
+              - generic [ref=f5e225]: 重要
+              - generic [ref=f5e226]: 南通如东
+              - generic [ref=f5e227]: 未确认
+              - generic [ref=f5e228]:
+                - button "确认该重要告警" [ref=f5e229]: ✓
+                - button "定位到告警站点" [ref=f5e230]: ➤
+            - generic "站控与调度主站通信中断，已切换就地控制策略" [ref=f5e231]
+          - listitem "一般告警，未确认，回风温度 31.4℃ 偏高，制冷量不足预警" [ref=f5e232] [cursor=pointer]:
+            - generic [ref=f5e233]:
+              - generic [ref=f5e234]: 一般
+              - generic [ref=f5e235]: 苏州吴江
+              - generic [ref=f5e236]: 未确认
+              - generic [ref=f5e237]:
+                - button "确认该一般告警" [ref=f5e238]: ✓
+                - button "定位到告警站点" [ref=f5e239]: ➤
+            - generic "回风温度 31.4℃ 偏高，制冷量不足预警" [ref=f5e240]
+          - button "查看全部 8 条 ›" [ref=f5e241] [cursor=pointer]
+    - generic [ref=f5e242]:
+      - generic [ref=f5e243]:
+        - heading "趋势分析" [level=3] [ref=f5e245]
+        - generic [ref=f5e246]:
+          - button "功率" [ref=f5e247] [cursor=pointer]
+          - button "SOC" [ref=f5e248] [cursor=pointer]
+        - button "明细 ▸" [ref=f5e249] [cursor=pointer]
+      - generic [ref=f5e251]:
+        - generic [ref=f5e252]:
+          - generic [ref=f5e253]: 并网功率 · 计划 / 实际
+          - generic [ref=f5e254]: 计划实际
+        - img [ref=f5e257]:
+          - generic [ref=f5e258]: "-200"
+          - generic [ref=f5e259]: "-100"
+          - generic [ref=f5e260]: "0.0"
+          - generic [ref=f5e261]: "100"
+          - generic [ref=f5e262]: "200"
+          - generic [ref=f5e263]: "300"
+          - generic [ref=f5e264]: 00:00
+          - generic [ref=f5e265]: 04:00
+          - generic [ref=f5e266]: 08:00
+          - generic [ref=f5e267]: 12:00
+          - generic [ref=f5e268]: 16:00
+          - generic [ref=f5e269]: 20:00
+          - generic [ref=f5e270]: 24:00
+  - contentinfo [ref=f5e278]:
+    - generic [ref=f5e279]:
+      - generic [ref=f5e280]:
+        - text: 调度策略
+        - generic [ref=f5e281]: 执行中
+      - generic [ref=f5e282]:
+        - button "削峰填谷" [ref=f5e283] [cursor=pointer]
+        - button "调频响应" [ref=f5e284] [cursor=pointer]
+        - button "自主备用" [ref=f5e285] [cursor=pointer]
+    - generic [ref=f5e286]:
+      - generic [ref=f5e287]:
+        - text: 通信链路
+        - generic [ref=f5e288]: 4/4 正常
+      - generic [ref=f5e289]:
+        - generic [ref=f5e290]:
+          - generic [ref=f5e292]: 南通如东 ↔ 调度主站
+          - generic [ref=f5e293]: 0 ms
+        - generic [ref=f5e300]:
+          - generic [ref=f5e302]: 站控 ↔ BMS 网关
+          - generic [ref=f5e303]: 8 ms
+    - generic [ref=f5e310]:
+      - generic [ref=f5e311]: 设备在线率
+      - generic [ref=f5e312]:
+        - generic [ref=f5e314]: 98.7%
+        - generic [ref=f5e315]:
+          - generic [ref=f5e316]: PCS
+          - generic [ref=f5e318]: BMS
+          - generic [ref=f5e320]: EMS
+          - generic [ref=f5e322]: 消防
+    - generic [ref=f5e324]:
+      - generic [ref=f5e325]:
+        - text: AI 辅助决策
+        - generic [ref=f5e326]: 在线
+        - button "展开 ›" [ref=f5e327] [cursor=pointer]
+      - generic [ref=f5e329]:
+        - generic [ref=f5e330]: 根因
+        - generic [ref=f5e331]: 86%
+  - button "演示导览 ▸" [ref=f5e332] [cursor=pointer]

@@ -1,3 +1,0 @@
-[e2e] bridge already running, reuse
-  PASS  bridge /health
-  FAIL  websocket connected (mode=ws) within 15s

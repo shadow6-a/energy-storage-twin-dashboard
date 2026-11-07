@@ -1,4 +1,0 @@
-[e2e] bridge already running, reuse
-  PASS  bridge /health
-  DEBUG last="\"{\\\"badge\\\":\\\"实时\\\",\\\"mode\\\":\\\"ws\\\",\\\"connected\\\":true}\" ### Ran Playwright code ```js await page.evaluate(\u0027() =\u003e (JSON.stringify({badge:document.getElementById(\\\u0027hdrSrc\\\u0027).textContent, mode:DataIO.status().mode, connected:DataIO.status().connected}))\u0027); ```"
-  FAIL  websocket connected (mode=ws) within 15s

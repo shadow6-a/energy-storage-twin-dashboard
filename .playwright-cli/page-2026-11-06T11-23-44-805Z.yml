@@ -1,0 +1,328 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 交互流程文档
+      - generic [ref=e5]: INTERACTION FLOW · V0.9.1
+    - generic [ref=e6]:
+      - link "01 告警状态流转图" [ref=e7] [cursor=pointer]:
+        - /url: "#f1"
+        - generic [ref=e8]: "01"
+        - text: 告警状态流转图
+      - link "02 下钻交互链路图" [ref=e9] [cursor=pointer]:
+        - /url: "#f2"
+        - generic [ref=e10]: "02"
+        - text: 下钻交互链路图
+      - link "03 策略下发分支图" [ref=e11] [cursor=pointer]:
+        - /url: "#f3"
+        - generic [ref=e12]: "03"
+        - text: 策略下发分支图
+      - link "04 异常边界分支图" [ref=e13] [cursor=pointer]:
+        - /url: "#f4"
+        - generic [ref=e14]: "04"
+        - text: 异常边界分支图
+      - link "05 跨区联动规则" [ref=e15] [cursor=pointer]:
+        - /url: "#f5"
+        - generic [ref=e16]: "05"
+        - text: 跨区联动规则
+      - link "06 边界与异常性" [ref=e17] [cursor=pointer]:
+        - /url: "#f6"
+        - generic [ref=e18]: "06"
+        - text: 边界与异常性
+    - link "— 返回调度大屏" [ref=e19] [cursor=pointer]:
+      - /url: index.html
+  - main [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - text: 储能电站集群数字孪生调度大屏
+        - generic [ref=e23]: /
+        - generic [ref=e24]: 交互流程
+      - heading "告警闭环 · 三级下钻 · 策略下发 · 异常边界" [level=1] [ref=e25]
+      - paragraph [ref=e26]: 本文档定义大屏四条核心链路的状态、触发与反馈规则，图源为 Mermaid（可复制到支持 Mermaid 的工具二次编辑）） 配套文字规则表描述每条边的触发条件、界面响应与数据响应。所有流转满足「一次点击、一个明确响应」。
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: "01"
+        - heading "告警完整状态流转图" [level=2] [ref=e30]
+        - generic [ref=e31]: ALARM STATE MACHINE
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]: 状态机 · 主流程 + 抑制旁路
+          - document [ref=e36]:
+            - generic [ref=e38]:
+              - generic [ref=e45]:
+                - generic [ref=e46]: BMS/PCS/消防 产生
+                - generic [ref=e51]: 点击「确认」责任认定
+                - generic [ref=e57]: 点击「闭环」处置完成
+                - generic [ref=e63]: 设置抑制窗口
+                - generic [ref=e68]: 窗口结束恢复未确认
+                - generic [ref=e74]: 确认后暂缓设窗口
+              - generic [ref=e80]:
+                - generic [ref=e81]: 未确认 s0
+                - generic [ref=e86]: 已确认 s1
+                - generic [ref=e91]: 已闭环 s2
+                - generic [ref=e96]: 已抑制 s3
+        - group [ref=e106]:
+          - generic "查看 / 复制 Mermaid 源码" [ref=e107] [cursor=pointer]
+      - table [ref=e109]:
+        - rowgroup [ref=e110]:
+          - row [ref=e111]:
+            - columnheader "迁移" [ref=e112]
+            - columnheader "触发" [ref=e113]
+            - columnheader "界面响应" [ref=e114]
+            - columnheader "数据响应" [ref=e115]
+          - row [ref=e116]:
+            - cell "产生 → s0" [ref=e117]
+            - cell "设备上报 / 阈值越限" [ref=e118]
+            - cell "台账置顶插入，等级色条高亮 3s" [ref=e119]
+            - cell "未闭环 +1，电站行角标 +1，顶栏联动" [ref=e120]
+          - row [ref=e121]:
+            - cell "s0 → s1" [ref=e122]
+            - cell "点击「确认」按钮" [ref=e123]
+            - cell "状态徽标变「已确认」，解锁「闭环」" [ref=e124]
+            - cell "排序权重下降，但仍计入未闭环" [ref=e125]
+          - row [ref=e126]:
+            - cell "s1 → s2" [ref=e127]
+            - cell "点击「闭环」按钮" [ref=e128]
+            - cell "整行降透明度，移出置顶区" [ref=e129]
+            - cell "未闭环 −1，角标与顶栏同步递减" [ref=e130]
+          - row [ref=e131]:
+            - cell "s0/s1 → s3" [ref=e132]
+            - cell "设置抑制窗口" [ref=e133]
+            - cell "灰阶 + 「已抑制」徽标，不参与置顶" [ref=e134]
+            - cell "不计数、不提示；窗口结束自动回 s0" [ref=e135]
+          - row [ref=e136]:
+            - cell "动效联动" [ref=e137]
+            - cell "默认轻量化（脉冲静态描边）下，紧急级 s0 出现时仅该拓扑节点自动提权为动态扩散脉冲；推进至 s1/s2 后自动回落轻量化——低配性能与紧急信号可见性兼得（v0.9.5）" [ref=e138]
+          - row [ref=e139]:
+            - cell "排序规则" [ref=e140]
+            - cell "s0 > s1 > s2 > s3 → 等级（紧急>重要>一般>提示）→ 发生时间升序" [ref=e141]
+    - generic [ref=e142]:
+      - generic [ref=e143]:
+        - generic [ref=e144]: "02"
+        - heading "下钻交互链路图" [level=2] [ref=e145]
+        - generic [ref=e146]: DRILL-DOWN CHAIN · L0→L3
+      - generic [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]: 主链路：点击点位 → 镜头动画 → 面板指标联动
+          - document [ref=e151]:
+            - generic [ref=e153]:
+              - generic [ref=e162]:
+                - generic [ref=e163]: 点击信标
+                - generic [ref=e167]: 自动
+                - generic [ref=e171]: 点击舱体
+                - generic [ref=e175]: 点击簇
+                - generic [ref=e179]: Esc / 面包屑
+                - generic [ref=e183]: Esc / 面包屑
+                - generic [ref=e187]: Esc / 面包屑
+              - generic [ref=e191]:
+                - generic [ref=e192]: L0 区域总览8 站点位 + 汇集点
+                - generic [ref=e198]: 镜头聚焦620ms 推近 + 高亮
+                - generic [ref=e204]: L1 站内孪生舱体 / PCS / 主变
+                - generic [ref=e210]: L2 舱内簇群12 电池簇 + 母排
+                - generic [ref=e216]: L3 电池簇 BMS单体电压 / 温度
+        - group [ref=e222]:
+          - generic "查看 / 复制 Mermaid 源码" [ref=e223] [cursor=pointer]
+      - table [ref=e225]:
+        - rowgroup [ref=e226]:
+          - row [ref=e227]:
+            - columnheader "步骤" [ref=e228]
+            - columnheader "触发" [ref=e229]
+            - columnheader "空间响应（3D） /th>" [ref=e230]
+            - columnheader "数据响应（3D 面板） /th>" [ref=e231]
+          - row [ref=e232]:
+            - cell "L0 → 聚焦" [ref=e233]
+            - cell "点击信标（半径 24px 热区）" [ref=e234]
+            - cell "相机 target/dist/pitch 三参数缓动 620ms" [ref=e235]
+            - cell "无（等待层级切换）" [ref=e236]
+          - row [ref=e237]:
+            - cell "→ L1" [ref=e238]
+            - cell "聚焦结束后自动// 左侧电站行" [ref=e239]
+            - cell "切换站内场景，180ms 淡入淡出" [ref=e240]
+            - cell "指标卡、三张图表全部切换为单站数据；面包屑 +1 级" [ref=e241]
+          - row [ref=e242]:
+            - cell "→ L2" [ref=e243]
+            - cell "点击舱体 / 浮卡「进入电池舱」" [ref=e244]
+            - cell "切换舱内场景，12 簇阵列 + 母排" [ref=e245]
+            - cell "指标切换为舱级 SOC/SOH/温度；趋势图变为簇温底/SOC 柱状" [ref=e246]
+          - row [ref=e247]:
+            - cell "→ L3" [ref=e248]
+            - cell "点击簇// 浮卡「查看电池簇」" [ref=e249]
+            - cell "场景不切换，选中簇描边 + 地面椭圆" [ref=e250]
+            - cell "趋势图变为单体电压/温度曲线、一致性环形；浮卡显示 BMS 详情" [ref=e251]
+          - row [ref=e252]:
+            - cell "回退" [ref=e253]
+            - cell "Esc / 面包屑// 浮卡「返回」" [ref=e254]
+            - cell "逐级恢复上级场景相机" [ref=e255]
+            - cell "指标与图表回退对应范围，选中态清除" [ref=e256]
+    - generic [ref=e257]:
+      - generic [ref=e258]:
+        - generic [ref=e259]: "03"
+        - heading "策略下发分支图" [level=2] [ref=e260]
+        - generic [ref=e261]: STRATEGY DISPATCH
+      - generic [ref=e262]:
+        - generic [ref=e263]:
+          - generic [ref=e264]: 策略选择 → 计划重算 → 下发 → AI 复核
+          - document [ref=e266]:
+            - generic [ref=e268]:
+              - generic [ref=e276]:
+                - generic [ref=e277]: 采纳
+                - generic [ref=e281]: 暂不
+              - generic [ref=e285]:
+                - generic [ref=e286]: 底部策略分段选择
+                - generic [ref=e291]: 削峰填谷系数 1.0 · 两充两放
+                - generic [ref=e297]: 调频响应系数 0.55 · 预留 55% 调节容量
+                - generic [ref=e303]: 自主备用系数 0.28 · SOC 维持 55-65%
+                - generic [ref=e309]: 计划曲线重算趋势区虚线即时更新
+                - generic [ref=e315]: 下发 · 状态标签「执行中」窗口 + 目标功率更新
+                - generic [ref=e321]: AI 复核收益预估 / 偏差超限提醒
+                - generic [ref=e327]: 生成建议卡#DT-xxxx-编号 toast
+                - generic [ref=e333]: 记录人工复核项
+        - group [ref=e338]:
+          - generic "查看 / 复制 Mermaid 源码" [ref=e339] [cursor=pointer]
+      - table [ref=e341]:
+        - rowgroup [ref=e342]:
+          - row [ref=e343]:
+            - columnheader "策略" [ref=e344]
+            - columnheader "计划曲线形态" [ref=e345]
+            - columnheader "底部面板反馈" [ref=e346]
+            - columnheader "业务含义" [ref=e347]
+          - row [ref=e348]:
+            - cell "削峰填谷" [ref=e349]
+            - cell "两充两放，谷段 −00MW / 晚峰 +150MW，与实时计划一致1/td>" [ref=e350]
+            - cell "窗口「低谷充电 23:30–06:30 / 晚峰放电 17:30–21:00」" [ref=e351]
+            - cell "分时电价套利为主，SOC 全区间利用" [ref=e352]
+          - row [ref=e353]:
+            - cell "调频响应" [ref=e354]
+            - cell "整体幅值 ×0.55，形态收窄" [ref=e355]
+            - cell "「AGC 调频里程 1,860MW · 死区 ±2MW」" [ref=e356]
+            - cell "预留调节容量，吞吐换调频补偿" [ref=e357]
+          - row [ref=e358]:
+            - cell "自主备用" [ref=e359]
+            - cell "幅值 ×0.28，曲线趋平" [ref=e360]
+            - cell "「离网备用 30min · SOC 维持 55–65%」" [ref=e361]
+            - cell "降低吞吐保后备容量" [ref=e362]
+          - row [ref=e363]:
+            - cell "边界" [ref=e364]
+            - cell "计划曲线仅受策略影响；「实际」曲线始终反映真实功率，形成计划/实况偏差对比。AI 建议不直接修改策略，需值班员确认采纳。" [ref=e365]
+    - generic [ref=e366]:
+      - generic [ref=e367]:
+        - generic [ref=e368]: "04"
+        - heading "异常边界分支图" [level=2] [ref=e369]
+        - generic [ref=e370]: EDGE CASES
+      - generic [ref=e371]:
+        - generic [ref=e372]:
+          - generic [ref=e373]: 通信中断 / 离线站点 / 告警抑制冲突
+          - document [ref=e376]:
+            - generic [ref=e377]:
+              - generic [ref=e384]: Syntax error in text
+              - generic [ref=e385]: mermaid version 10.9.1
+        - group [ref=e386]:
+          - generic "查看 / 复制 Mermaid 源码" [ref=e387] [cursor=pointer]
+      - table [ref=e389]:
+        - rowgroup [ref=e390]:
+          - row [ref=e391]:
+            - columnheader "场景" [ref=e392]
+            - columnheader "判定条件" [ref=e393]
+            - columnheader "空间响应" [ref=e394]
+            - columnheader "面板响应" [ref=e395]
+          - row [ref=e396]:
+            - cell "单站通信中断" [ref=e397]
+            - cell "站控心跳超时 120s" [ref=e398]
+            - cell "信标变灰，脉冲/角标/链路流向移除" [ref=e399]
+            - cell "指标卡「快照数据」标注；进站 toast 提示" [ref=e400]
+          - row [ref=e401]:
+            - cell "全站通信中断" [ref=e402]
+            - cell "集群网关失联" [ref=e403]
+            - cell "全场景灰阶降级，流向动画停止" [ref=e404]
+            - cell "顶栏 0/8；顶部功率显示「--」；标题提示离线值守" [ref=e405]
+          - row [ref=e406]:
+            - cell "告警抑制冲突" [ref=e407]
+            - cell "新告警落点为已抑制设备" [ref=e408]
+            - cell "—" [ref=e409]
+            - cell "紧急&重要强制唤醒为未确认并置顶；一般 提示累计后统一提醒" [ref=e410]
+          - row [ref=e411]:
+            - cell "重复告警" [ref=e412]
+            - cell "同设备同类型 5min 冲" [ref=e413]
+            - cell "—" [ref=e414]
+            - cell "合并计数（×N），不重复置顶" [ref=e415]
+    - generic [ref=e416]:
+      - generic [ref=e417]:
+        - generic [ref=e418]: "05"
+        - heading "跨区联动规则" [level=2] [ref=e419]
+        - generic [ref=e420]: CONTEXT LINKAGE
+      - table [ref=e422]:
+        - rowgroup [ref=e423]:
+          - row [ref=e424]:
+            - columnheader "触发源" [ref=e425]
+            - columnheader "空间响应（3D） /th>" [ref=e426]
+            - columnheader "数据响应" [ref=e427]
+            - columnheader "记录响应" [ref=e428]
+          - row [ref=e429]:
+            - cell "点击左侧电站行" [ref=e430]
+            - cell "地图镜头推近并下钻 L1" [ref=e431]
+            - cell "右侧指标 / 图表切换为该站" [ref=e432]
+            - cell "面包屑更新，行选中态" [ref=e433]
+          - row [ref=e434]:
+            - cell "点击告警「定位」" [ref=e435]
+            - cell "L1 → L2 → L3 自动下钻并选中设备" [ref=e436]
+            - cell "指标切换至簇级/BMS" [ref=e437]
+            - cell "toast 提示定位结果" [ref=e438]
+          - row [ref=e439]:
+            - cell "点击 3D 站点信标" [ref=e440]
+            - cell "聚焦 + 下钻 L1" [ref=e441]
+            - cell "同上" [ref=e442]
+            - cell "左侧列表行同步选中" [ref=e443]
+          - row [ref=e444]:
+            - cell "切换策略" [ref=e445]
+            - cell "链路流向保持实时功率方向" [ref=e446]
+            - cell "计划曲线重算" [ref=e447]
+            - cell "底部窗口 / 功率更新 + toast" [ref=e448]
+          - row [ref=e449]:
+            - cell "图层开关（告警/链路/标注）" [ref=e450]
+            - cell "脉冲现// 流动链路 / 标注牌显隐" [ref=e451]
+            - cell "—" [ref=e452]
+            - cell "—" [ref=e453]
+          - row [ref=e454]:
+            - cell "实时数据帧（2.5s）" [ref=e455]
+            - cell "标注牌 SOC / 功率刷新" [ref=e456]
+            - cell "指标卡与趋势图增量更新" [ref=e457]
+            - cell "电站列表 SOC / 徽标刷新" [ref=e458]
+    - generic [ref=e459]:
+      - generic [ref=e460]:
+        - generic [ref=e461]: "06"
+        - heading "边界与异常性" [level=2] [ref=e462]
+        - generic [ref=e463]: SPECS
+      - generic [ref=e464]:
+        - table [ref=e466]:
+          - rowgroup [ref=e467]:
+            - row [ref=e468]:
+              - columnheader "场景" [ref=e469]
+              - columnheader "处理" [ref=e470]
+            - row [ref=e471]:
+              - cell "过渡期间重复点击" [ref=e472]
+              - cell "转场 280ms 内忽略新导航（transitioning 锁），避免场景错乱" [ref=e473]
+            - row [ref=e474]:
+              - cell "镜头动画中切层级" [ref=e475]
+              - cell "转场淡出后由目标层级相机接管，动画立即失效" [ref=e476]
+            - row [ref=e477]:
+              - cell "悬浮态下数据刷新" [ref=e478]
+              - cell "图表悬浮期间暂停重绘，移出后下一帧恢复，避免浮层闪烁" [ref=e479]
+            - row [ref=e480]:
+              - cell "无告警筛选结果" [ref=e481]
+              - cell "台账显示「暂无该等级告警」空态" [ref=e482]
+        - table [ref=e484]:
+          - rowgroup [ref=e485]:
+            - row [ref=e486]:
+              - columnheader "场景" [ref=e487]
+              - columnheader "处理" [ref=e488]
+            - row [ref=e489]:
+              - cell "超长告警文本" [ref=e490]
+              - cell "最大 2 行截断，完整信息在悬浮// 详情中查看" [ref=e491]
+            - row [ref=e492]:
+              - cell "非<16:9 分辨率" [ref=e493]
+              - cell "整屏等比缩放并居中，两侧留黑，画布按缩放倍率重采样" [ref=e494]
+            - row [ref=e495]:
+              - cell "键盘操作" [ref=e496]
+              - cell "Esc：关闭抽屉 → 逐级上浮；主链路全部可鼠标完成" [ref=e497]
+            - row [ref=e498]:
+              - cell "异常演示" [ref=e499]
+              - cell "index.html?anomaly=offline / multi / overtemp 三种异常态演示" [ref=e500]

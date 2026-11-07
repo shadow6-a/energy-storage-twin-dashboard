@@ -1,0 +1,130 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - text: 鍒嗗眰瑙嗚绋?/b>
+      - generic [ref=e5]: LAYERED MOCKUPS 路 V0.9.1
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "01 鍒嗗眰璇存槑涓庡浘渚?/a>" [ref=e8] [cursor=pointer]:
+          - /url: "#m1"
+          - generic [ref=e9]: "01"
+          - text: 鍒嗗眰璇存槑涓庡浘渚?/a>
+        - link "02 涓诲ぇ灞忓畬鏁寸 L0" [ref=e10] [cursor=pointer]:
+          - /url: "#m2"
+          - generic [ref=e11]: "02"
+          - text: 涓诲ぇ灞忓畬鏁寸 L0
+        - link "03 鍗曠數绔欒鍥?L1" [ref=e12] [cursor=pointer]:
+          - /url: "#m3"
+          - generic [ref=e13]: "03"
+          - text: 鍗曠數绔欒鍥?L1
+        - link "04 鐢垫睜鑸辩皣瑙嗗浘 L2" [ref=e14] [cursor=pointer]:
+          - /url: "#m4"
+          - generic [ref=e15]: "04"
+          - text: 鐢垫睜鑸辩皣瑙嗗浘 L2
+        - link "05 鐢垫睜绨?BMS L3" [ref=e16] [cursor=pointer]:
+          - /url: "#m5"
+          - generic [ref=e17]: "05"
+          - text: 鐢垫睜绨?BMS L3
+        - link "06 寮傚父鎬佷笁绋?/a>" [ref=e18] [cursor=pointer]:
+          - /url: "#m6"
+          - generic [ref=e19]: "06"
+          - text: 寮傚父鎬佷笁绋?/a>
+        - link "07 鍔ㄦ晥鍙傝€冿紙鑴夊啿/娴佸悜锛?/a>" [ref=e20] [cursor=pointer]:
+          - /url: "#m7"
+          - generic [ref=e21]: "07"
+          - text: 鍔ㄦ晥鍙傝€冿紙鑴夊啿/娴佸悜锛?/a>
+        - link "08 Figma 鍥惧眰缁撴瀯" [ref=e22] [cursor=pointer]:
+          - /url: "#m8"
+          - generic [ref=e23]: "08"
+          - text: Figma 鍥惧眰缁撴瀯
+      - link "鈥?杩斿洖璋冨害澶у睆" [ref=e24] [cursor=pointer]:
+        - /url: index.html
+  - main [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - text: 鍌ㄨ兘鐢电珯闆嗙兢鏁板瓧瀛敓璋冨害澶у睆
+        - generic [ref=e29]: /
+        - generic [ref=e30]: 鍒嗗眰瑙嗚绋?/b>
+      - generic [ref=e31]:
+        - heading "闈欐€佸垎灞傜 路 鍔ㄦ晥鍙傝€?路 浜や簰鐑尯" [level=1] [ref=e32]
+        - paragraph [ref=e33]: 浠ヤ笅鍚勭涓?1920脳1080 鍩哄噯鐨?2脳 楂樻竻瀵煎嚭锛?840脳2160 PNG锛屼綅浜?assets/mockups/锛夛紝 涓庣嚎涓婇〉闈㈤€愬儚绱犱竴鑷淬€傛瘡寮犵鍙垏鎹笁绫绘爣娉細闈欐€佸眰锛堝竷灞€涓庝俊鎭級銆? 鍔ㄦ晥灞?/b>锛堝厑璁稿姩鐨勫厓绱狅級銆?b style="color:#f2a89c">浜や簰鐑尯锛堝彲鐐瑰嚮鍖哄煙锛夈€? 鍔ㄦ晥浠呬袱绫伙細鍛婅鑴夊啿鐜笌閾捐矾娴佸悜锛屾棤绮掑瓙 / 娉涘厜 / 鍏朵粬鍏夋晥銆?
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]: "01"
+          - heading "鍒嗗眰璇存槑涓庡浘渚?/h2>LAYERS" [level=2] [ref=e38]
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: 闈欐€佸眰 STATIC
+            - paragraph [ref=e44]: 闈㈡澘楠ㄦ灦銆佹枃鏈€佸浘琛ㄥ潗鏍囩郴銆?D 鍦烘櫙缁撴瀯銆備换浣曚富棰樹笅涓嶅姩銆?/p>
+          - generic [ref=e45]:
+            - generic [ref=e46]: 鍔ㄦ晥灞?MOTION
+            - paragraph [ref=e49]: 浠呬袱绫伙細鍛婅鑴夊啿鐜紙4 绾ц妭濂忥級銆侀摼璺祦鍚戞祦鍏夛紙闅忕瓥鐣ュ彉閫燂級銆傛暟鎹埛鏂扮被娣″叆娣″嚭 <300ms銆?/p>
+          - generic [ref=e50]:
+            - generic [ref=e51]: 浜や簰鐑尯 HOTSPOT
+            - paragraph [ref=e54]: 鍙偣鍑诲尯鍩燂細淇℃爣銆佽埍浣撱€佺數姹犵皣銆佸憡璀﹁銆佺瓥鐣ュ垎娈点€佸浘灞傚紑鍏炽€佹娊灞夎Е鍙戙€?/p>
+      - generic [ref=e56]:
+        - generic [ref=e57]: "02"
+        - heading "涓诲ぇ灞忓畬鏁寸 路 L0 闆嗙兢鎬昏" [level=2] [ref=e58]
+        - generic [ref=e59]: 1920脳1080 @2x
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: "06"
+          - heading "寮傚父鎬佷笁绋?/h2>EDGE STATES 路 闈炵悊鎯虫€?/span>" [level=2] [ref=e63]
+        - paragraph [ref=e64]: 璇佹槑寮傚父宸ュ喌宸茬撼鍏ヨ璁★細鍏ㄧ珯閫氫俊涓柇锛堢伆闃堕檷绾э級銆佸鍛婅骞跺彂 + 宸叉姂鍒舵潯鐩紙鍚姂鍒跺啿绐侊級銆佺數姹犵皣涓ラ噸瓒呮俯锛?3.8鈩?浜岀骇娓╂帶 + 鐑熸劅棰勫姩浣滐級銆? 涓夌鐘舵€佸潎鍙湪绾夸笂閫氳繃 index.html?anomaly=offline / multi / overtemp 澶嶇幇銆?
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]: "07"
+          - heading "鍔ㄦ晥鍙傝€?路 鑴夊啿鑺傚涓庢祦鍚戦€熷害" [level=2] [ref=e68]
+          - generic [ref=e69]: MOTION SPEC 路 浠呬袱绫诲姩鏁?/span>
+        - paragraph [ref=e70]: 鍛婅鑴夊啿鐜細妞渾璐村湴锛屽悜澶栨墿鏁ｅ苟娣″嚭锛岀瓑绾ц秺楂樿妭濂忚秺蹇€佽秺閱掔洰锛涙彁绀虹骇涓洪潤鎬佸懠鍚稿厜锛屼笉鎵╂暎銆傞摼璺祦鍚戯細娴佸厜娈垫部铏氱嚎绉诲姩锛岄€熷害涓庣瓥鐣ュ悶鍚愮郴鏁版垚姝ｆ瘮锛岀绾块潤姝€?/p>
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e77]: 绱ф€?CRIT 路 0.9s/鍦?鍙岀幆
+            - generic [ref=e78]: scale 0.55鈫?.7 路 opacity .95鈫?鍙岀幆鐩镐綅宸?0.45s 路 璐村湴妞渾
+          - generic [ref=e79]:
+            - generic [ref=e83]: 閲嶈 HIGH 路 1.4s/鍦?鍗曠幆
+            - generic [ref=e84]: scale 0.55鈫?.7 路 opacity .9鈫?鍗曠幆杩炵画 路 鏃犲０鏁?/div>
+            - generic [ref=e85]:
+              - generic [ref=e89]: 涓€鑸?WARN 路 2.4s/鍦?寮卞寲
+              - generic [ref=e90]: scale 0.55鈫?.2 路 opacity .7鈫?浣庨寮卞寲锛屼笉鎶㈣瑙夌劍鐐?/div>
+              - generic [ref=e95]:
+                - text: 鎻愮ず INFO 路 闈欐€佸懠鍚?/label>
+                - generic [ref=e96]: opacity .15鈫?3 鍛煎惛 3.6s涓嶆墿鏁?路 涓嶅弬涓庣疆椤堕€昏緫
+            - generic [ref=e97]:
+              - table [ref=e98]:
+                - rowgroup [ref=e99]:
+                  - row [ref=e100]:
+                    - columnheader "绛栫暐 / 鐘舵€?/th>" [ref=e101]
+                    - columnheader "娴侀€燂紙娴佸厜鍛ㄦ湡锛?/th>" [ref=e102]
+                    - columnheader "鏂瑰悜" [ref=e103]
+                  - row [ref=e104]:
+                    - cell "鍓婂嘲濉胺 路 鏅氬嘲鏀剧數" [ref=e105]
+                    - cell "2.0s锛堢郴鏁?1.0锛?/td>" [ref=e106]
+                    - cell "绔?鈫?姹囬泦鐐癸紙鐞ョ弨娴佸悜锛?/td>" [ref=e107]
+                  - row [ref=e108]:
+                    - cell "璋冮鍝嶅簲" [ref=e109]
+                    - cell "3.6s锛堢郴鏁?0.55锛?/td>" [ref=e110]
+                    - cell "鍙屽悜灏忓箙" [ref=e111]
+                  - row [ref=e112]:
+                    - cell "鑷富澶囩敤" [ref=e113]
+                    - cell "7.0s锛堢郴鏁?0.28锛?/td>" [ref=e114]
+                    - cell "寰祦" [ref=e115]
+                  - row [ref=e116]:
+                    - cell "閫氫俊涓柇" [ref=e117]
+                    - cell "闈欐锛堟祦鍏夐殣钘忥級" [ref=e118]
+                    - cell "鈥?/td>" [ref=e119]
+              - generic [ref=e120]:
+                - generic [ref=e125]: 鍓婂嘲濉胺 路 2.0s 鍛ㄦ湡
+                - generic [ref=e129]: 璋冮鍝嶅簲 路 3.6s 鍛ㄦ湡
+                - generic [ref=e132]: 鑷富澶囩敤 路 7.0s 鍛ㄦ湡
+                - generic [ref=e135]: 閫氫俊涓柇 路 娴佸厜闅愯棌锛堥潤姝㈢伆鐐瑰崰浣嶏級
+      - generic [ref=e136]:
+        - generic [ref=e137]:
+          - generic [ref=e138]: "08"
+          - heading "Figma 鍥惧眰缁撴瀯锛堢矘璐村彲鐢級" [level=2] [ref=e139]
+          - generic [ref=e140]: FIGMA STRUCTURE
+        - generic [ref=e142]:
+          - text: 鍌ㄨ兘璋冨害澶у睆 1920脳1080 鈹溾攢 00 BG / 鑳屾櫙 鈹? 鈹溾攢 bg-gradient 娣辫摑寰勫悜 鈹? 鈹斺攢 grid 缃戞牸绾圭悊 3% 鈹溾攢 01 TOPBAR / 椤堕儴閫氭爮 1920脳56 銆愰潤鎬併€? 鈹? 鈹溾攢 title-灞呬腑涓绘爣棰? 鈹? 鈹溾攢 kpi-宸︼紙鎬昏鏈?鐗堟湰/鏂囨。閾炬帴锛? 鈹? 鈹溾攢 kpi-鍙筹紙骞剁綉鍔熺巼/閫氫俊鍦ㄧ嚎/鏃堕挓锛? 鈹? 鈹斺攢 scenario-tag 寮傚父鎬佹紨绀烘爣绛? 鈹溾攢 02 LEFT / 宸︽爮 296脳872 銆愰潤鎬併€? 鈹? 鈹溾攢 panel-stations 鐢电珯鍒楄〃锛?2%锛? 鈹? 鈹? 鈹溾攢 filters chips 脳3 銆愮儹鍖恒€? 鈹? 鈹? 鈹斺攢 rows 脳8锛坉ot/name/soc/寰芥爣锛夈€愮儹鍖恒€? 鈹? 鈹斺攢 panel-alerts 鍛婅鍙拌处锛?8%锛? 鈹? 鈹溾攢 filters chips 脳5 銆愮儹鍖恒€? 鈹? 鈹斺攢 cards 脳N锛坙v-tag/time/status/text锛? 鈹? 鈹斺攢 actions 纭/闂幆/瀹氫綅 銆愮儹鍖恒€? 鈹溾攢 03 CENTER / 涓昏鍖?1164脳872 鈹? 鈹溾攢 canvas-3d 瀛敓瑙嗗彛 銆愰潤鎬併€? 鈹? 鈹? 鈹溾攢 L0 绔欑偣淇℃爣 脳8銆愬姩鏁埪疯剦鍐诧綔鐑尯銆? 鈹? 鈹? 鈹溾攢 L0 閾捐矾娴佸悜 銆愬姩鏁埪锋祦鍏夈€? 鈹? 鈹? 鈹溾攢 L1 鑸变綋/PCS/涓诲彉 銆愮儹鍖恒€? 鈹? 鈹? 鈹斺攢 L2 鐢垫睜绨?脳12 銆愮儹鍖恒€? 鈹? 鈹溾攢 HUD-闈㈠寘灞?銆愮儹鍖恒€? 鈹? 鈹溾攢 HUD-宸ュ叿锛?D/澶嶄綅/鍥惧眰寮€鍏筹級銆愮儹鍖恒€? 鈹? 鈹溾攢 HUD-鍥句緥锛堝乏涓嬶級 鈹? 鈹溾攢 card-绔欑偣娴崱 銆愮儹鍖恒€? 鈹? 鈹斺攢 veil 杞満閬僵 銆愬姩鏁埪?80ms銆? 鈹溾攢 04 RIGHT / 鍙虫爮 420脳872 銆愰潤鎬併€? 鈹? 鈹溾攢 metrics 鎸囨爣鍗?2脳2+wide锛堥殢灞傜骇鑱斿姩锛? 鈹? 鈹斺攢 trends 瓒嬪娍鍖猴紙tab 鍔熺巼/SOC 銆愮儹鍖恒€? 鈹? 鈹溾攢 chart-璁″垝vs瀹為檯锛坣ow 绔栫嚎锛? 鈹? 鈹溾攢 chart-娓╁害/鍘嬪樊 鏌辩姸 鈹? 鈹斺攢 chart-鍋ュ悍搴︾幆褰?/pre>
+          - generic [ref=e143]: 鈹? 鈹斺攢 chart-鍋ュ悍搴︾幆褰? 鈹溾攢 05 BOTTOM / 搴曢儴杈呭姪鏍?1920脳112 銆愰潤鎬併€? 鈹? 鈹溾攢 strategy 绛栫暐鍒嗘 脳3 銆愮儹鍖恒€? 鈹? 鈹溾攢 comm 閫氫俊閾捐矾 脳4 鈹? 鈹溾攢 online 璁惧鍦ㄧ嚎鐜? 鈹? 鈹斺攢 ai-block AI 鎽樿 + 灞曞紑 銆愮儹鍖恒€? 鈹溾攢 06 OVERLAY / 娴眰 鈹? 鈹溾攢 toast 闃熷垪锛堝簳閮ㄥ眳涓級 鈹? 鈹溾攢 tooltip 3D 鎮诞鍗? 鈹? 鈹斺攢 veil 杞満閬僵 280ms 鈹溾攢 07 DRAWER / AI 鎶藉眽 466px 銆愮儹鍖恒€? 鈹? 鈹溾攢 scrim 閬僵 鈹? 鈹溾攢 鏍瑰洜鎺ㄨ崘锛堢疆淇″害鏉★級 鈹? 鈹溾攢 鏀剁泭棰勪及锛堟瀯鎴愭潯锛? 鈹? 鈹斺攢 璋冨害寤鸿锛堥噰绾虫寜閽級銆愮儹鍖恒€? 鈹斺攢 08 MOTION / 鍔ㄦ晥瑙勮寖 鈹溾攢 pulse-ring 鍛婅鑴夊啿锛? 绾ц妭濂忥級 鈹? crit .9s脳2 / high 1.4s / warn 2.4s / info 鍛煎惛 鈹溾攢 flow-dash 閾捐矾娴佸悜锛堢瓥鐣ュ彉閫燂級 鈹? 宄拌胺 2.0s / 璋冮 3.6s / 澶囩敤 7.0s / 绂荤嚎闈欐 鈹斺攢 transition 杞満/娣″叆娣″嚭 鈮?00ms
+        - paragraph [ref=e144]: 瀵煎嚭绾﹀畾锛欶igma 涓寜 00鈫?8 鑷笂鑰屼笅寤虹粍锛涘姩鏁堝眰涓庣儹鍖哄眰鍗曠嫭缃《骞跺懡鍚?MOTION/*銆?span class="kbd">HOTSPOT/*锛屼氦浠樺紑鍙戞椂闅愯棌銆傛墍鏈夎壊鍊间互 components.html 鑹叉澘浠ょ墝涓哄噯銆?/p>
