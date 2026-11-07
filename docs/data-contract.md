@@ -98,7 +98,48 @@
 { "t": "ping", "ts": 1730980020000 }   →   { "t": "pong", "ts": 1730980020000 }
 ```
 
-## 4. 接入清单（贵方后端视角）
+## 4. MQTT 数据源（已实现，推荐路径）
+
+现场 EMS/BMS 通常只出 MQTT，桥接服务已内置 MQTT 3.1.1 客户端（零依赖），
+**采集侧只需按下面约定发报文，大屏即生效**——前端与桥接都不用改代码。
+
+```bash
+node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
+# 私有 broker / 带鉴权：
+node server/bridge.js 9001 --mqtt mqtt://10.0.0.5:1883 --topic 'plant/#' --user ems --pass '***'
+```
+
+### 4.1 主题约定（默认，可用 `--topic` 改通配）
+
+| 主题 | 载荷 | 说明 |
+|---|---|---|
+| `ess/scada` | `{"stations":[{id,power,soc,soh,temp,status}]}` 或单站 `{id,power,soc}` | 1Hz 遥测，批量推荐 |
+| `ess/alert` | `{id,lv,st,dev,text}` | 新告警即时进台账 |
+| `ess/ops` | 桥接**发布**给 EMS：`{ts,by,action,ids,result}` | 处置回写（确认/闭环/撤销） |
+
+### 4.2 载荷识别规则（宽松，MQTTX 手发 JSON 也能即刻见效）
+
+桥接对 `--topic` 匹配到的每条消息依次尝试：
+
+1. 含 `t` 字段且为协议帧类型（`scada`/`alert`/`alertState`/`history`/`cluster`）→ 直通或按帧处理
+2. 含 `stations` 数组 → 批量指标
+3. 含 `id` + 任一数值字段（`power`/`soc`/`soh`/`temp`）→ 单站指标（缺字段保留旧值）
+4. 含 `id` + `lv`/`text` → 新告警
+
+### 4.3 链路老化
+
+某站 **>12s 无任何消息** → 桥接判定掉线（`comm:"offline"`、`power:0` 下发前端），不猜数。
+恢复发包即自动回到在线，无需重启。
+
+### 4.4 本地联调（无 EMS 时）
+
+```bash
+node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'   # 终端 1
+node server/mqtt-sim.js --prefix ess                                           # 终端 2：EMS 替身
+# 浏览器 index.html?ws=live ； MQTTX 里可同时订阅 ess/# 围观原始流量
+```
+
+## 5. 接入清单（贵方后端视角）
 
 1. 实现 WebSocket 端点，按 §2 节拍发帧（scada 1s、history 30s、alert 事件驱动）
 2. 消费 §3 `op` 帧，落到工单/审计系统，并广播 `alertState`

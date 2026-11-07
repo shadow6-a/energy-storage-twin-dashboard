@@ -1805,7 +1805,7 @@
        缺省             按 config.js source（'mock'=纯静态演示 / 'ws'=生产实时）
      防御：高频推送下渲染节流 ≤2Hz；告警池上限 40 条；坏帧丢弃计数（dataio.js）。 */
   const LIVE_LV = { crit: '紧急', high: '重要', warn: '一般', info: '提示' };
-  let liveDirty = false, liveLast = 0;
+  let liveDirty = false, liveLast = 0, liveBridge = '';
 
   function liveFlush() {
     refreshLive();
@@ -1860,7 +1860,10 @@
     if (!el) return;
     const s = DataIO.status();
     if (s.mode === 'ws') {
-      if (s.connected) { el.textContent = '实时'; el.className = 'ok'; el.title = '实时链路已连接（' + s.msgCount + ' 帧）'; }
+      if (s.connected) {
+        el.textContent = '实时'; el.className = 'ok';
+        el.title = '实时链路已连接（' + s.msgCount + ' 帧' + (liveBridge ? ' · 源 ' + liveBridge : '') + '）';
+      }
       else { el.textContent = '重连 ' + s.nextRetrySec + 's'; el.className = 'warn'; el.title = '链路断开，指数退避重连中'; }
     } else if (s.mode === 'mock') {
       el.textContent = '模拟推送'; el.className = 'warn'; el.title = '?ws=mock 演示推送';
@@ -1889,6 +1892,7 @@
       onAlertState: m => handleLiveMsg(m),
       onHistory: () => { liveDirty = true; },
       onCluster: () => { liveDirty = true; },
+      onHello: m => { liveBridge = (m && m.bridge) || ''; renderSrcBadge(); },
       onStatus: renderSrcBadge
     }, urlOverride ? { mode: 'ws', url: urlOverride } : { mode: 'ws' });
     renderSrcBadge();

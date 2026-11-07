@@ -19,6 +19,31 @@ assets/js/config.js { source:'ws', url:'…' }   → 永久生效
 
 顶栏「数据链路」角标：`演示数据`(灰) / `模拟推送`(琥珀) / `实时`(绿) / `重连 Ns`(琥珀)。
 
+## MQTT 模式（真实采集）
+
+桥接内置零依赖 MQTT 3.1.1 客户端（`server/mqtt.js`），直连现场 broker：
+
+```bash
+node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
+node server/bridge.js 9001 --mqtt mqtt://10.0.0.5:1883 --topic 'plant/#' --user ems --pass '***'
+```
+
+- 订阅 `--topic`（默认 `ess/#`），消息按 `docs/data-contract.md` §4 宽松识别：
+  `{stations:[…]}` / 单站 `{id,power,soc}` / 告警 `{id,lv,st,text}` / 协议帧直通
+- 某站 >12s 无消息自动判掉线（`comm:"offline"`），复通自动恢复
+- 处置回写双通道：`data/ops.jsonl` 落盘 + 发布 `ess/ops`（EMS/工单系统订阅即可接单）
+- `GET /health` 回报 `source:"mqtt"`、`mqtt:"connected"`、`mqttMsgs` 计数
+
+### 没有 EMS 时：用模拟器自证链路
+
+```bash
+node server/mqtt-sim.js --prefix ess          # 终端 2：1Hz 遥测 + 20~30s 一条随机告警
+node server/mqtt-sim.js --prefix testtopic    # 特殊：让你 MQTTX 里订阅 testtopic/# 直接围观
+```
+
+前端打开 `index.html?ws=live`，角标变绿即数据在流；MQTTX 里手动 Publish 一条
+`{"id":"S01","power":88.5,"soc":61}` 到任意被订阅主题，大屏 1 秒内跟随。
+
 ## 它做什么
 
 | 帧节拍 | 内容 |

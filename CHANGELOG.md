@@ -3,6 +3,30 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.1.0-prototype（2026-11-07）
+
+**MQTT 直连落地**：现场 EMS/BMS 出 MQTT 即可驱动大屏，链路端到端 10 断言全绿（公共 broker 实测）。
+
+### 1. `server/mqtt.js`（新，零依赖 MQTT 3.1.1 客户端）
+- 手写 CONNECT/CONNACK · SUBSCRIBE/SUBACK · PUBLISH(QoS0) · PINGREQ/PINGRESP，net 直连，指数退避重连
+- 不引入 npm `mqtt`（保持项目「零依赖、node 即跑」的交付形态）
+
+### 2. `server/bridge.js` MQTT 模式
+- `--mqtt <url> --topic <filter> [--user --pass]`；CSV 退化为站点名册，指标全由 broker 驱动
+- 载荷宽松识别：协议帧直通 / `{stations:[…]}` 批量 / 单站 `{id,power,soc}` / 告警 `{id,lv,st,text}`
+- **链路老化**：单站 >12s 无消息判掉线（`comm:"offline"`、power 0），复通自动恢复
+- 处置回写双通道：`ops.jsonl` 落盘 + 发布 `<prefix>/ops`（主题跟随 `--topic` 推导，多环境不串台）
+- `/health` 增加 `source/mqtt/mqttMsgs/liveCount/sample`，运维一眼看穿链路质量
+
+### 3. `server/mqtt-sim.js`（新，EMS 替身）
+- 1Hz 发布 8 站遥测（计划曲线 + 噪声 + SOC 积分），20~30s 一条随机告警
+- `--prefix testtopic` 可让 MQTTX 里订阅 `testtopic/#` 直接围观原始流量
+
+### 4. 测试与文档
+- `tests/mqtt_e2e.ps1`（10 断言）：health 数据源 → broker 订阅 → 消息摄取 → 页面直连（显式端口，避免误连 config 默认 9001）→ 秒级值变化 → S06 掉线判定 → MQTT 告警进台账 → 回写落盘 → 回写投递 `<prefix>/ops`
+- 每次运行随机主题前缀，隔离公共 broker 上他人流量；测试夹具入仓 `tests/tools/mqtt/`
+- `docs/data-contract.md` 新增 §4 MQTT 章节（主题约定 / 识别规则 / 老化 / 联调命令）
+
 ## v2.0.0-prototype（2026-11-07）
 
 **真实数据链路落地**：前端数据层（WS 客户端 + 重连 + 链路角标）、零依赖桥接服务、协议契约文档、端到端测试 9/9。回归 86/86 PASS（mock 演示路径零破坏）。

@@ -23,6 +23,22 @@ const PORT = parseInt(process.argv[2] || process.env.BRIDGE_PORT || '9001', 10);
 const DATA_DIR = path.join(__dirname, 'data');
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
+/* ---------------- CLI：数据源选择 ----------------
+   node server/bridge.js                        → CSV 演示源（内置推演）
+   node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic ess/#
+   node server/bridge.js --mqtt mqtts://… --user u --pass p
+   MQTT 模式下 CSV 只当站点名册（id/name/mw/cap），指标全部由 broker 消息驱动。 */
+function cliArg(name, def) {
+  const i = process.argv.indexOf('--' + name);
+  return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : def;
+}
+const MQTT_URL = cliArg('mqtt', process.env.MQTT_URL || '');
+const MQTT_TOPIC = cliArg('topic', process.env.MQTT_TOPIC || 'ess/#');
+const MQTT_USER = cliArg('user', process.env.MQTT_USER || '');
+const MQTT_PASS = cliArg('pass', process.env.MQTT_PASS || '');
+/* 回写主题：从订阅通配推导（ess/# → ess/ops），多租户/多环境互不串台 */
+const OPS_TOPIC = MQTT_TOPIC.replace(/[#*]+$/, '').replace(/\/+$/, '') + '/ops';
+
 /* ---------------- 计划曲线（与前端 data.js PLAN_PTS 同源） ---------------- */
 const PLAN_PTS = [[0, -110], [5.5, -110], [7, -20], [8.5, 128], [10.5, 150], [11.5, 80],
   [13, -40], [16, 0], [17.5, 168], [20, 176], [21.5, 30], [23, -58], [24, -110]];
@@ -113,6 +129,102 @@ function simulateStations() {
   });
 }
 
+/* ---------------- MQTT 数据源（真实采集） ----------------
+   订阅 broker，把消息映射成站点指标 / 告警，再按 1s 节拍转成 WS scada 帧。
+   消息形态（宽松识别，MQTTX 里手发 JSON 也能即刻见效）：
+     {"id":"S01","power":88.5,"soc":61.2}              → 单站指标
+     {"stations":[{...},{...}]}                        → 批量指标
+     {"id":"A011","lv":"high","st":"S03","text":"…"}   → 新告警（进台账）
+     {"t":"history"/"cluster"/"alertState", …}          → 协议帧直通（前端同构消费）
+   链路老化：某站 >12s 无消息 → 视为掉线（comm=offline / power=0），不猜数。 */
+const live = new Map();      /* id → {power,soc,soh,temp,status,comm,ts} */
+let mqttClient = null, mqttState = 'off', mqttMsgCount = 0;
+
+function ingestPayload(topic, raw) {
+  let m;
+  try { m = JSON.parse(raw.toString('utf8')); } catch (e) { return; }
+  mqttMsgCount++;
+  if (m && typeof m.t === 'string') {
+    if (m.t === 'scada' && Array.isArray(m.stations)) { m.stations.forEach(applyStation); return; }
+    if (m.t === 'scada' && m.id) { applyStation(m); return; }
+    if (m.t === 'alert') { pushAlert(m.alert || m); return; }
+    if (m.t === 'alertState' || m.t === 'history' || m.t === 'cluster') { broadcast(m); return; }
+  }
+  if (m && Array.isArray(m.stations)) { m.stations.forEach(applyStation); return; }
+  if (m && m.id && ('power' in m || 'soc' in m || 'soh' in m || 'temp' in m)) { applyStation(m); return; }
+  if (m && m.id && (m.lv || m.text)) { pushAlert(m); return; }
+}
+
+function applyStation(s) {
+  if (!s || !s.id) return;
+  const prev = live.get(s.id) || {};
+  const next = Object.assign({}, prev, { ts: Date.now() });
+  ['power', 'soc', 'soh', 'temp'].forEach(k => {
+    if (typeof s[k] === 'number' && isFinite(s[k])) next[k] = s[k];
+  });
+  if (s.status) next.status = s.status;
+  if (s.comm) next.comm = s.comm;
+  if (typeof next.power === 'number' && !s.status) {
+    next.status = next.power > 3 ? 'discharging' : (next.power < -3 ? 'charging' : 'standby');
+  }
+  live.set(s.id, next);
+}
+
+function pushAlert(a) {
+  if (!a || !a.id) return;
+  const row = {
+    id: a.id, lv: a.lv || 'warn', st: a.st || '', dev: a.dev || '遥测',
+    text: a.text || '(无描述)', status: alertStatus.get(a.id) || 0
+  };
+  alertRows = alertRows.filter(x => x.id !== row.id).concat([row]);
+  broadcast({ t: 'alert', alert: row, ts: Date.now() });
+  console.log('[mqtt] alert', row.id, row.lv, String(row.text).slice(0, 28));
+}
+
+/* 1s 节拍：把 MQTT 最新值（含老化判定）转成 scada 批次帧 */
+function scadaFromLive() {
+  const now = Date.now();
+  return stationRows.map(r => {
+    const v = live.get(r.id);
+    if (!v || now - (v.ts || 0) > 12000) {
+      return {
+        id: r.id, power: 0,
+        soc: v && v.soc != null ? v.soc : (parseFloat(r.soc) || 60),
+        soh: parseFloat(r.soh) || 95, temp: parseFloat(r.temp) || 30,
+        status: 'offline', comm: 'offline'
+      };
+    }
+    return {
+      id: r.id,
+      power: v.power != null ? v.power : 0,
+      soc: v.soc != null ? v.soc : (parseFloat(r.soc) || 60),
+      soh: v.soh != null ? v.soh : (parseFloat(r.soh) || 95),
+      temp: v.temp != null ? v.temp : (parseFloat(r.temp) || 30),
+      status: v.status || 'standby',
+      comm: v.comm || 'online'
+    };
+  });
+}
+
+function startMqtt() {
+  const { createClient } = require('./mqtt');
+  mqttState = 'connecting';
+  mqttClient = createClient({
+    url: MQTT_URL,
+    clientId: 'ess-bridge-' + Math.random().toString(16).slice(2, 10),
+    username: MQTT_USER || undefined,
+    password: MQTT_PASS || undefined
+  });
+  mqttClient.on('connect', () => {
+    mqttState = 'connected';
+    mqttClient.subscribe([MQTT_TOPIC]);
+    console.log('[mqtt] connected →', MQTT_URL, 'subscribe', MQTT_TOPIC);
+  });
+  mqttClient.on('message', ingestPayload);
+  mqttClient.on('error', e => { mqttState = 'error'; console.warn('[mqtt] error:', e.message); });
+  mqttClient.on('close', () => { if (mqttState !== 'error') mqttState = 'reconnecting'; });
+}
+
 function buildHistory(id) {
   const r = stationRows.find(x => x.id === id);
   if (!r) return null;
@@ -194,7 +306,11 @@ const server = http.createServer((req, res) => {
   /* 健康检查端点：网关/运维探活用 */
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, clients: clients.size, stations: stationRows.length, alerts: alertRows.length, ts: Date.now() }));
+    res.end(JSON.stringify({
+      ok: true, clients: clients.size, stations: stationRows.length, alerts: alertRows.length,
+      source: MQTT_URL ? 'mqtt' : 'csv', mqtt: mqttState, mqttMsgs: mqttMsgCount,
+      liveCount: live.size, sample: live.get('S01') || null, ts: Date.now()
+    }));
     return;
   }
   res.writeHead(426); res.end('WebSocket upgrade required');
@@ -232,7 +348,7 @@ server.on('upgrade', (req, sock) => {
 
   /* 握手帧：协议版本 + 站点清单 + 当前告警全量 + 24h 曲线（新客户端秒级对齐，不用等 30s tick） */
   sendJson(sock, {
-    t: 'hello', v: 2, bridge: 'csv-demo',
+    t: 'hello', v: 2, bridge: MQTT_URL ? ('mqtt:' + (() => { try { return new URL(MQTT_URL).host; } catch (e) { return MQTT_URL; } })()) : 'csv-demo',
     stations: stationRows.map(r => r.id),
     alerts: alertRows.map(r => ({ id: r.id, lv: r.lv, st: r.st, dev: r.dev, text: r.text, status: alertStatus.get(r.id) || 0 })),
     ts: Date.now()
@@ -250,6 +366,10 @@ function onMessage(sock, m) {
     fs.appendFileSync(opsLog, JSON.stringify(rec) + '\n');
   } catch (e) { rec.result = 'log-failed: ' + e.message; }
   console.log('[op]', JSON.stringify(rec));
+  /* MQTT 模式：处置回写同时投递到 broker（EMS/工单系统订阅 <prefix>/ops 即可接单） */
+  if (mqttClient && mqttState === 'connected') {
+    try { mqttClient.publish(OPS_TOPIC, JSON.stringify(rec)); } catch (e) { /* 断链不阻塞本地审计 */ }
+  }
   m.ids.forEach(id => {
     let status;
     if (m.action === 'ack') status = 1;
@@ -272,8 +392,9 @@ function refreshHistory() {
 }
 
 setInterval(() => {
-  loadAll();   /* CSV 热加载（mtime 未变时零开销） */
-  if (clients.size) broadcast({ t: 'scada', ts: Date.now(), stations: simulateStations() });
+  loadAll();   /* CSV 热加载（mtime 未变时零开销；MQTT 模式下仅作站点名册） */
+  if (!clients.size) return;
+  broadcast({ t: 'scada', ts: Date.now(), stations: MQTT_URL ? scadaFromLive() : simulateStations() });
 }, 1000);
 
 setInterval(() => {
@@ -284,8 +405,13 @@ setInterval(() => {
 /* 新告警注入演示：向 server/data/alerts.csv 追加一行并保存，10s 内全端弹出台账 */
 
 loadAll();
+if (MQTT_URL) startMqtt();
 server.listen(PORT, () => {
   console.log(`[bridge] ws://127.0.0.1:${PORT}/ws   health: http://127.0.0.1:${PORT}/health`);
-  console.log(`[bridge] 数据源: server/data/stations.csv (${stationRows.length} 站) / alerts.csv (${alertRows.length} 条)`);
-  console.log('[bridge] 处置回写落盘: server/data/ops.jsonl');
+  if (MQTT_URL) {
+    console.log(`[bridge] 数据源: MQTT ${MQTT_URL}  topic ${MQTT_TOPIC}（站点名册 ${stationRows.length} 站，指标由 broker 驱动）`);
+  } else {
+    console.log(`[bridge] 数据源: server/data/stations.csv (${stationRows.length} 站) / alerts.csv (${alertRows.length} 条)`);
+  }
+  console.log('[bridge] 处置回写: server/data/ops.jsonl' + (MQTT_URL ? ' + mqtt ' + OPS_TOPIC : ''));
 });

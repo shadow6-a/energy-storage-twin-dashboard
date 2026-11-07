@@ -35,15 +35,31 @@
 - **操作审计留痕**：审计抽屉记录「时间 / 角色 / 动作 / 对象 / 结果」，覆盖确认、闭环、批量处置、撤销、策略下发、角色切换；localStorage 留存最近 200 条，菜单项带条数徽标，可导出 CSV
 - **边界**：审计为**前端演示态**（浏览器本地存储、可被清空），生产环境需后端审计表 + 账号绑定 + 不可篡改存储（见 `feasibility.md`）
 
-## 真实数据接入（v2.0）
+## 真实数据接入（v2.1：MQTT 直连）
 
-纯前端演示跑 mock；接真实数据只需三步，**前端零改动**：
+纯前端演示跑 mock；接真实数据**前端零改动**，现场 EMS/BMS 只要有 MQTT 就能上：
 
-1. 网关按协议契约 `docs/data-contract.md` 实现 WebSocket 推送（scada 1s / history 30s / alert 事件驱动，消费 op 处置回写）
-2. 改一行配置 `assets/js/config.js` → `{ source:'ws', url:'ws://网关:9001/ws' }`（或临时 `index.html?ws=ws://…`）
-3. 顶栏「数据链路」角标变绿「实时」即接入成功；断线自动指数退避重连并降级显示
+```bash
+# 1) 桥接：订阅现场 broker，转成大屏 WebSocket 协议
+node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
+#    带鉴权：--user ems --pass '***'      私有协议前缀：--topic 'plant/1#/#'（默认 ess/#）
 
-自带桥接服务 `server/bridge.js`（Node 零依赖）：CSV 演示源跑通「实时指标 → 告警推送 → 处置回写 → 多端同步」全链路，端到端测试 `tests/live_e2e.ps1` 9 断言护栏。接 MQTT/Modbus/数据库时只换桥接适配器。
+# 2) 页面：index.html?ws=live  （或 config.js 里 source:'ws' 永久生效）
+```
+
+采集侧只需按约定发报文（`docs/data-contract.md` §4）：
+
+| 主题 | 载荷 | 效果 |
+|---|---|---|
+| `ess/scada` | `{"stations":[{id,power,soc,soh,temp,status}]}` | 1Hz 指标驱动大屏 + 3D 拓扑着色 |
+| `ess/alert` | `{id,lv,st,dev,text}` | 告警即时进台账 |
+| `ess/ops` | 桥接**发布**：`{ts,by,action,ids,result}` | 处置回写（确认/闭环/撤销）给 EMS 工单系统 |
+
+- 某站 >12s 无消息自动判掉线（`comm:"offline"`），复通自动恢复，不猜数
+- 顶栏「数据链路」角标：灰 `演示数据` / 琥珀 `重连 Ns` / 绿 `实时`（悬停看数据源）
+- **没有 EMS 也能自证**：`node server/mqtt-sim.js --prefix ess` 即起一个 1Hz 遥测 + 随机告警的 EMS 替身
+
+自带桥接（`server/bridge.js` + 手写 MQTT 3.1.1 客户端，**零 npm 依赖**），端到端护栏：`tests/live_e2e.ps1`（WS 链路 9 断言）、`tests/mqtt_e2e.ps1`（MQTT 链路 10 断言）。
 
 ## 免责边界
 

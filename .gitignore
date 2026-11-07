@@ -4,5 +4,7 @@ tests/*.err
 
 # 桥接服务运行时产物
 server/data/ops.jsonl
+server/_*.log
+server/_*.out
 _gif/
 .playwright-cli/
