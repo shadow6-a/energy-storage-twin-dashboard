@@ -8,9 +8,7 @@
 
 纯静态、零构建、零依赖——**push 即自动发布**（`.github/workflows/deploy-pages.yml`）。首次启用：仓库 **Settings → Pages → Source 选「GitHub Actions」**，之后每次 push `main` 或打 `v*` tag 都会重新部署。
 
-```text
-https://<你的账号>.github.io/<仓库名>/
-```
+**https://shadow6-a.github.io/energy-storage-twin-dashboard/**
 
 ## 演示动图（15 秒，一次键盘流跑完全流程）
 
