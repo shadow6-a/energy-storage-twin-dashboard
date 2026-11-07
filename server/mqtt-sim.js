@@ -25,6 +25,7 @@ const URL_ = cliArg('mqtt', process.env.MQTT_URL || 'mqtt://broker.emqx.io:1883'
 const PREFIX = cliArg('prefix', 'ess');
 const USER = cliArg('user', process.env.MQTT_USER || '');
 const PASS = cliArg('pass', process.env.MQTT_PASS || '');
+const CHAOS = (cliArg('chaos', '') || '').toLowerCase();   /* reorder: 周期性补发 10s 前的旧快照 */
 
 /* 站点名册（与前端 data.js STATIONS 对齐） */
 const STATIONS = [
@@ -56,6 +57,7 @@ function planAt(h) {
 const nowH = () => { const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
 
 const state = STATIONS.map(s => Object.assign({}, s));
+const snapshotLog = [];   /* 最近 12 个快照（供乱序注入取 10s 前的旧数据） */
 
 function tick() {
   const plan = planAt(nowH());
@@ -89,10 +91,23 @@ const client = createClient({
 });
 
 client.on('connect', () => {
-  console.log(`[sim] connected → ${URL_}，发布 ${PREFIX}/scada 1Hz，${PREFIX}/alert 20~30s/条`);
+  console.log(`[sim] connected → ${URL_}，发布 ${PREFIX}/scada 1Hz，${PREFIX}/alert 20~30s/条` +
+    (CHAOS ? `，chaos=${CHAOS}` : ''));
   setInterval(() => {
-    client.publish(`${PREFIX}/scada`, JSON.stringify({ t: 'scada', stations: tick() }));
+    const stations = tick();
+    snapshotLog.push({ ts: Date.now(), first: stations[0] });
+    if (snapshotLog.length > 12) snapshotLog.shift();
+    client.publish(`${PREFIX}/scada`, JSON.stringify({ t: 'scada', ts: Date.now(), stations }));
   }, 1000);
+  /* 混沌 reorder：每 6s 单发一帧「10 秒前的 S01 快照」，桥接的乱序守卫应拒收 */
+  if (CHAOS.includes('reorder')) {
+    setInterval(() => {
+      if (snapshotLog.length < 10) return;
+      const old = snapshotLog[0];
+      client.publish(`${PREFIX}/scada`, JSON.stringify(Object.assign({ t: 'scada', ts: old.ts }, old.first)));
+      console.log('[chaos] injected stale frame, ts =', old.ts);
+    }, 6000);
+  }
   const sendAlert = () => {
     const a = ALERT_POOL[Math.floor(Math.random() * ALERT_POOL.length)];
     alertSeq++;

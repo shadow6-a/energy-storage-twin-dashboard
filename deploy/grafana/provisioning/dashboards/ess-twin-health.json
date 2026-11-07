@@ -1,0 +1,54 @@
+{
+  "title": "储能孪生 · 运行健康（ESS Twin Health）",
+  "uid": "ess-twin-health",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "MQTT 消息速率 (msgs/s) — 断流即刻见底",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [{ "expr": "rate(ess_mqtt_msgs_total[30s])", "legendFormat": "ingest" }],
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "title": "处置指令队列深度 — 曲线抬升=网络在堵，不是按钮坏了",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "ess_ops_queue_depth", "legendFormat": "queue" },
+        { "expr": "ess_ops_dead_total", "legendFormat": "dead" },
+        { "expr": "ess_ops_retry_total", "legendFormat": "retry" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 3,
+      "title": "前端 JS Heap (MB) — 72h 长尾看这里",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "ess_ui_heap_mb", "legendFormat": "ui heap" },
+        { "expr": "ess_bridge_heap_mb", "legendFormat": "bridge heap" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "decbytes" }, "overrides": [] }
+    },
+    {
+      "id": 4,
+      "title": "链路健康 — 事件循环延迟 / FPS / 数据年龄 / 重连",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "ess_bridge_eventloop_lag_ms", "legendFormat": "lag ms" },
+        { "expr": "ess_ui_fps", "legendFormat": "fps" },
+        { "expr": "ess_ui_last_data_age_seconds", "legendFormat": "data age s" },
+        { "expr": "ess_ui_reconnects", "legendFormat": "reconnects" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    }
+  ]
+}

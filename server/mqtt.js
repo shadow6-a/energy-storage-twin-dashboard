@@ -90,6 +90,7 @@ function createClient(opts) {
   let sock = null, buf = Buffer.alloc(0), pid = 1;
   let filters = [];
   let retry = 0, timer = null, pingTimer = null, dead = false;
+  let suppressUntil = 0;                          /* 混沌演练：drop(ms) 后抑制重连至该时刻 */
 
   function send(b) { if (sock && !sock.destroyed) sock.write(b); }
 
@@ -121,8 +122,9 @@ function createClient(opts) {
       clearInterval(pingTimer);
       api.emit('close');
       if (!dead) {
-        const wait = Math.min(30000, 1000 * Math.pow(2, retry++));
-        timer = setTimeout(connect, wait);
+        const backoff = Math.min(30000, 1000 * Math.pow(2, retry++));   /* 指数退避，30s 封顶 */
+        const suppressed = Math.max(0, suppressUntil - Date.now());      /* 混沌窗口未结束则延后重连 */
+        timer = setTimeout(connect, backoff + suppressed);
       }
     });
   }
@@ -158,6 +160,12 @@ function createClient(opts) {
   };
   api.publish = (topic, payload, o) => {
     send(buildPublish(topic, Buffer.isBuffer(payload) ? payload : Buffer.from(String(payload), 'utf8'), !!(o && o.retain)));
+    return api;
+  };
+  /* 混沌演练原语：强拆 TCP（不清 dead 标志，close→退避重连），ms>0 时抑制重连至窗口结束 */
+  api.drop = ms => {
+    suppressUntil = Date.now() + (ms || 0);
+    if (sock && !sock.destroyed) sock.destroy();
     return api;
   };
   api.end = () => {

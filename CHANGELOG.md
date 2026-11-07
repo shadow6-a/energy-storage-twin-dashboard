@@ -3,6 +3,30 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.3.0-prototype（2026-11-07）
+
+**混沌工程 + 可观测性深化**：对数据链路下狠手——乱序迟到旧数据、周期性强拆 MQTT 链路，全部有指标可见、有断言兜底。
+
+### 1. 乱序守卫（`server/bridge.js`）
+- 带源时间戳的帧：迟到 2~60s 的旧数据**拒收**并计入 `ess_mqtt_msgs_stale_total`（宁缺毋假）
+- skew ≥ 60s 视为发布端时钟回拨/重置（NTP 校时），重置基线照常接受
+- 站级老化改用源时间戳（封顶 30s 防发布端时钟超前），断流判定不被迟到包刷新
+- 无 ts 的旧格式帧行为不变（渐进兼容）
+
+### 2. 混沌注入原语
+- `server/mqtt.js`：`client.drop(ms)`——强拆 TCP、抑制重连 ms 毫秒（退避上限 30s 不变）
+- `server/bridge.js --chaos-flap N`：每 N 秒强拆 MQTT 链路 5s，`ess_chaos_flaps_total` 计数
+- `server/mqtt-sim.js --chaos reorder`：每 6s 补发一帧 10s 前的旧快照
+
+### 3. `tests/chaos_e2e.ps1`（12 断言，全 PASS）
+乱序守卫生效 → 断链观察 → 断链窗口内注入处置指令 → **outbox 有界排队（depth=1，无风暴）** → 退避上限内重连 → **队列收敛到 0（最终一致）** → UI 数据年龄 1s（老化门未误触发）→ 零死信 → 功率值始终合理（旧数据未污染）→ ops.jsonl 审计完整。
+
+### 4. Prometheus + Grafana 一键联动（`deploy/`）
+- `docker compose up -d` 即得：Prometheus（5s 抓取 bridge）+ Grafana（预置「运行健康」仪表盘：消息速率 / 队列深度 / Heap / Lag-FPS-数据年龄 四联曲线）
+
+### 5. soak 曲线可视化
+- `tests/tools/soak-plot.py`：soak CSV → `docs/img/soak-curve.svg`（三联曲线，零依赖手写 SVG），README 直接嵌入
+
 ## v2.2.0-prototype（2026-11-07）
 
 **工程化监控基建**：从「能看」到「能管」——Prometheus 指标端点、前端遥测、异常注入测试、长跑压测、反向控制闭环（outbox 重试 + 终态回滚）。

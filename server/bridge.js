@@ -38,6 +38,7 @@ const MQTT_URL = cliArg('mqtt', process.env.MQTT_URL || '');
 const MQTT_TOPIC = cliArg('topic', process.env.MQTT_TOPIC || 'ess/#');
 const MQTT_USER = cliArg('user', process.env.MQTT_USER || '');
 const MQTT_PASS = cliArg('pass', process.env.MQTT_PASS || '');
+const CHAOS_FLAP = parseInt(cliArg('chaos-flap', '0'), 10) || 0;   /* 混沌：每 N 秒强拆 MQTT 链路 5s（演练） */
 /* 回写主题：从订阅通配推导（ess/# → ess/ops），多租户/多环境互不串台 */
 const OPS_TOPIC = MQTT_TOPIC.replace(/[#*]+$/, '').replace(/\/+$/, '') + '/ops';
 
@@ -153,12 +154,12 @@ function ingestPayload(topic, raw) {
   M.tick('ess_mqtt_msgs');
   M.inc('ess_mqtt_msgs_total');
   if (m && typeof m.t === 'string') {
-    if (m.t === 'scada' && Array.isArray(m.stations)) { m.stations.forEach(applyStation); return; }
+    if (m.t === 'scada' && Array.isArray(m.stations)) { const ts = m.ts; m.stations.forEach(st => applyStation(ts ? Object.assign({ ts }, st) : st)); return; }
     if (m.t === 'scada' && m.id) { applyStation(m); return; }
     if (m.t === 'alert') { pushAlert(m.alert || m); return; }
     if (m.t === 'alertState' || m.t === 'history' || m.t === 'cluster') { broadcast(m); return; }
   }
-  if (m && Array.isArray(m.stations)) { m.stations.forEach(applyStation); return; }
+  if (m && Array.isArray(m.stations)) { const ts = m.ts; m.stations.forEach(st => applyStation(ts ? Object.assign({ ts }, st) : st)); return; }
   if (m && m.id && ('power' in m || 'soc' in m || 'soh' in m || 'temp' in m)) { applyStation(m); return; }
   if (m && m.id && (m.lv || m.text)) { pushAlert(m); return; }
 }
@@ -179,7 +180,18 @@ function applyStation(s) {
   if (!s || !s.id) return;
   if (!plausible(s.id, s, rosterMap)) { M.inc('ess_mqtt_msgs_dropped_total'); return; }
   const prev = live.get(s.id) || {};
-  const next = Object.assign({}, prev, { ts: Date.now() });
+  /* 乱序守卫：带源时间戳的帧，比已收录的旧 → 迟到的旧数据，拒收（宁缺毋假）。
+     老化时间同步取源时间戳（封顶 30s 防发布端时钟超前），断流判定不被迟到包刷新。 */
+  let next_srcTs = null;
+  const srcTs = Number(s.ts);
+  if (isFinite(srcTs) && srcTs > 0) {
+    const skew = prev.srcTs ? prev.srcTs - srcTs : 0;
+    if (skew > 2000 && skew < 60000) { M.inc('ess_mqtt_msgs_stale_total'); return; }  /* 迟到 2~60s：乱序旧数据，拒收 */
+    /* skew >= 60s：发布端时钟回拨/重置（NTP 校时），重置基线照常接受 */
+    next_srcTs = srcTs;
+  }
+  const next = Object.assign({}, prev, { ts: next_srcTs ? Math.min(srcTs, Date.now() + 30000) : Date.now() });
+  if (next_srcTs != null) next.srcTs = next_srcTs;
   ['power', 'soc', 'soh', 'temp'].forEach(k => {
     if (typeof s[k] === 'number' && isFinite(s[k])) next[k] = s[k];
   });
@@ -244,6 +256,16 @@ function startMqtt() {
   mqttClient.on('message', ingestPayload);
   mqttClient.on('error', e => { mqttState = 'error'; console.warn('[mqtt] error:', e.message); });
   mqttClient.on('close', () => { if (mqttState !== 'error') mqttState = 'reconnecting'; });
+  /* 混沌演练：周期性强拆本端 TCP（重连被抑制 5s），验证 outbox 排队/退避上限/恢复后收敛 */
+  if (CHAOS_FLAP > 0) {
+    setInterval(() => {
+      if (!mqttClient) return;
+      console.log('[chaos] drop mqtt link for 5s');
+      M.inc('ess_chaos_flaps_total');
+      mqttClient.drop(5000);
+    }, CHAOS_FLAP * 1000);
+    console.log('[chaos] flapping enabled: drop every', CHAOS_FLAP, 's for 5s');
+  }
 }
 
 function buildHistory(id) {
@@ -496,6 +518,10 @@ setInterval(() => {
   M.set('ess_ws_msgs_rate', M.rate('ess_ws_msgs'));
   M.set('ess_mqtt_msgs_rate', M.rate('ess_mqtt_msgs'));
   M.set('ess_mqtt_connected', mqttState === 'connected' ? 1 : 0);
+  M.set('ess_ops_queue_depth', opsQueue.length);
+  M.inc('ess_ops_dead_total', 0);            /* counter 常驻注册：无事件时也暴露 0 */
+  M.inc('ess_chaos_flaps_total', 0);
+  M.inc('ess_mqtt_msgs_stale_total', 0);
   M.set('ess_stations_online', MQTT_URL ? scadaFromLive().filter(s => s.comm === 'online').length : stationRows.length);
   M.set('ess_alerts_total', alertRows.length);
   const mu = process.memoryUsage();

@@ -4,7 +4,7 @@
 
 [![在线 Demo](assets/mockups/00-cover.png)](https://shadow6-a.github.io/energy-storage-twin-dashboard/)
 
-![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![fault%20inject](https://img.shields.io/badge/fault%20inject-9%2F9%20passing-red) ![version](https://img.shields.io/badge/version-v2.2.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
+![tests](https://img.shields.io/badge/tests-86%2F86%20passing-brightgreen) ![live%20e2e](https://img.shields.io/badge/live%20e2e-9%2F9%20passing-blue) ![mqtt%20e2e](https://img.shields.io/badge/mqtt%20e2e-10%2F10%20passing-blueviolet) ![fault%20inject](https://img.shields.io/badge/fault%20inject-9%2F9%20passing-red) ![chaos%20e2e](https://img.shields.io/badge/chaos%20e2e-12%2F12%20passing-critical) ![version](https://img.shields.io/badge/version-v2.3.0--prototype-orange) ![deps](https://img.shields.io/badge/npm%20dependencies-0-success)
 
 工业值守大屏原型：8 座储能电站集群的「站点列表 → 3D 拓扑 → 指标/告警/趋势」黄金三角布局，纯原生 Canvas 3D 渲染（**零三方库、零构建、零 npm 依赖**），MQTT 直连真实 EMS，Playwright + PowerShell 回归门禁全程护栏。
 
@@ -87,6 +87,29 @@ curl http://127.0.0.1:9001/health    # 数据源死寂>30s → 503 + reasons[]�
 | 前端遥测 | `ess_ui_fps`、`ess_ui_heap_mb`、`ess_ui_reconnects`、`ess_ui_last_data_age_seconds` |
 
 **反向控制闭环（outbox 模式）**：处置指令先落盘审计（不可丢），MQTT 投递失败自动重试（2s×5）；终态 `opAck` 帧回前端——**投递失败时 UI 自动回滚本地状态并 toast 明示**，绝不静默丢指令。真实 BMS 的 NaN / 超量程坏点在摄取入口被合理性闸门拦截。
+
+### 混沌工程（v2.3：对数据链路下狠手）
+
+```powershell
+# 乱序迟到旧数据（每 6s 补发 10s 前快照）+ 每 25s 强拆 MQTT 链路 5s
+node server/mqtt-sim.js --prefix ess --chaos reorder
+node server/bridge.js 9001 --mqtt ... --topic ess/# --chaos-flap 25
+powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1   # 12 断言
+```
+
+实测结论：迟到旧数据被**入口拒收**（`ess_mqtt_msgs_stale_total` 可见），断链窗口内处置指令**有界排队**（depth=1，无风暴）、退避上限 30s 内重连、恢复后**队列收敛到 0**（最终一致）、UI 数据年龄全程 <12s、零死信、功率值从未被旧数据污染。
+
+**72h 长跑采样曲线**（真实 soak 数据，heap 平坦 = 无泄漏迹象）：
+
+![soak 曲线](docs/img/soak-curve.svg)
+
+### Prometheus + Grafana（一键联动）
+
+```bash
+cd deploy && docker compose up -d
+# Prometheus http://localhost:9090（5s 抓取桥接 /metrics）
+# Grafana    http://localhost:3000（预置「运行健康」仪表盘：速率/队列/Heap/Lag 四联曲线）
+```
 
 **长跑与故障演练**（72h 无人值守的护栏）：
 
