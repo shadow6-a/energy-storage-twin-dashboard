@@ -11,3 +11,6 @@ _gif/
 _runs.json
 tests/soak-latest.csv
 dist/
+deploy/nodocker/metrics-history.csv
+deploy/nodocker/alerts.log
+deploy/nodocker/_collector.log

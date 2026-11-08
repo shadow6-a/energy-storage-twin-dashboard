@@ -115,6 +115,17 @@ cd deploy && docker compose up -d
 # Grafana    http://localhost:3000（预置「运行健康」仪表盘：速率/队列/Heap/Lag 四联曲线）
 ```
 
+**无 Docker 等价方案**（下载不了 Docker / 内网隔离时，零安装、零外部依赖，只用 Node）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy/nodocker/start.ps1
+# 打开 http://127.0.0.1:9099/ （四联曲线仪表盘）与 http://127.0.0.1:8931/index.html?ws=live（大屏遥测源）
+```
+
+`deploy/nodocker/collector.js` 定时抓桥接 `/metrics` + `/health`，内存滚动窗口 + `metrics-history.csv` 落盘，自带原生 Canvas 仪表盘（消息速率 / 队列深度 / JS Heap / 事件循环延迟）、6 张指标卡、`/api/series` JSON 接口；`/health` 非 200 立即红条告警并写 `alerts.log`，恢复后记 recovered。**不需要 Docker、Prometheus、Grafana，也不需要联网下载任何东西**——有 Docker 时 `deploy/docker-compose.yml` 仍可用。
+
+![零 Docker 仪表盘](docs/img/nodocker-dashboard.png)
+
 **长跑与故障演练**（72h 无人值守的护栏）：
 
 ```powershell

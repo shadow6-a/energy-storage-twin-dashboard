@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>储能孪生 · 运行健康（零 Docker 版）</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b1220; color: #e2e8f0; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; background: #111c31; border-bottom: 1px solid #1e293b; }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: .5px; }
+  .sub { color: #94a3b8; font-size: 12px; }
+  #alert { margin: 0; padding: 9px 22px; font-size: 13px; font-weight: 600; }
+  #alert.ok { background: #064e3b; color: #a7f3d0; }
+  #alert.bad { background: #7f1d1d; color: #fecaca; }
+  #alert.unknown { background: #1e293b; color: #94a3b8; }
+  .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 16px 22px 0; }
+  .card { background: #111c31; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px; }
+  .card .k { color: #94a3b8; font-size: 12px; }
+  .card .v { font-size: 24px; font-weight: 700; margin-top: 3px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 16px 22px 22px; }
+  .panel { background: #111c31; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px 8px; }
+  .panel h2 { margin: 0 0 2px; font-size: 14px; font-weight: 600; }
+  .panel .hint { color: #64748b; font-size: 11px; min-height: 16px; }
+  canvas { width: 100%; height: 190px; display: block; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
+  footer { padding: 0 22px 20px; color: #64748b; font-size: 11px; }
+  @media (max-width: 900px) { .cards { grid-template-columns: repeat(3, 1fr); } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>储能孪生 · 运行健康</h1><div class="sub">零 Docker 采集器 · 原生 Canvas · 数据来自桥接 /metrics</div></div>
+  <div class="sub" id="status">连接中…</div>
+</header>
+<div id="alert" class="unknown">正在检查桥接健康状态…</div>
+<div class="cards" id="cards"></div>
+<div class="grid">
+  <div class="panel"><h2>消息速率（MQTT / WS）</h2><div class="hint">断流即刻见底；CSV 演示模式看 WS 曲线</div><canvas id="c1"></canvas><div class="legend"><span><i style="background:#38bdf8"></i>mqtt msgs/s</span><span><i style="background:#22d3ee"></i>ws msgs/s</span></div></div>
+  <div class="panel"><h2>处置指令队列</h2><div class="hint">曲线抬升 = 网络在堵，不是按钮坏了</div><canvas id="c2"></canvas><div class="legend"><span><i style="background:#f59e0b"></i>queue_depth</span><span><i style="background:#ef4444"></i>dead_total</span></div></div>
+  <div class="panel"><h2>前端 JS Heap</h2><div class="hint">72h 长尾看这里，平 = 无泄漏</div><canvas id="c3"></canvas><div class="legend"><span><i style="background:#34d399"></i>ui_heap_mb</span></div></div>
+  <div class="panel"><h2>桥接事件循环延迟</h2><div class="hint">服务端卡顿直接可见</div><canvas id="c4"></canvas><div class="legend"><span><i style="background:#a78bfa"></i>lag ms</span></div></div>
+</div>
+<footer id="foot">等待首个采样…</footer>
+
+<script>
+(function () {
+  'use strict';
+  var CARDS = [
+    ['ess_ui_fps', 'FPS', ''],
+    ['ess_ui_last_data_age_seconds', '数据年龄', ' s'],
+    ['ess_ui_reconnects', 'WS 重连', ''],
+    ['ess_stations_online', '在线站', ' / 8'],
+    ['ess_bridge_rss_mb', '桥接 RSS', ' MB'],
+    ['ess_ops_dead_total', '死信', '']
+  ];
+  var CHARTS = [
+    ['c1', [['ess_mqtt_msgs_rate', '#38bdf8'], ['ess_ws_msgs_rate', '#22d3ee']]],
+    ['c2', [['ess_ops_queue_depth', '#f59e0b'], ['ess_ops_dead_total', '#ef4444']]],
+    ['c3', [['ess_ui_heap_mb', '#34d399']]],
+    ['c4', [['ess_bridge_eventloop_lag_ms', '#a78bfa']]]
+  ];
+
+  function fmt(v) { return v == null ? '—' : (Math.round(v * 10) / 10).toString(); }
+
+  function draw(id, defs, data) {
+    var cv = document.getElementById(id), ratio = window.devicePixelRatio || 1;
+    var w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w * ratio; cv.height = h * ratio;
+    var g = cv.getContext('2d'); g.scale(ratio, ratio);
+    g.clearRect(0, 0, w, h);
+    var pad = { l: 38, r: 10, t: 10, b: 20 }, x0 = pad.l, x1 = w - pad.r, y0 = pad.t, y1 = h - pad.b;
+    var all = [];
+    defs.forEach(function (d) { (data[d[0]] || []).forEach(function (p) { if (p.v != null) all.push(p.v); }); });
+    if (!all.length) {
+      g.fillStyle = '#64748b'; g.font = '12px Segoe UI'; g.fillText('等待采样数据…', x0 + 10, (y0 + y1) / 2);
+      return;
+    }
+    var minV = Math.min.apply(null, all), hi = Math.max.apply(null, all), lo = minV;
+    if (hi - lo < 1e-9) hi = lo + 1;
+    lo -= (hi - lo) * .15; hi += (hi - lo) * .15;
+    if (minV >= 0 && minV < 1) lo = 0;   /* 计数/速率类指标不出现负刻度 */
+    g.strokeStyle = '#1e293b'; g.lineWidth = 1; g.fillStyle = '#64748b'; g.font = '10px Segoe UI';
+    for (var k = 0; k <= 3; k++) {
+      var gy = y0 + (y1 - y0) * k / 3;
+      g.beginPath(); g.moveTo(x0, gy); g.lineTo(x1, gy); g.stroke();
+      g.fillText(fmt(hi - (hi - lo) * k / 3), 2, gy + 3);
+    }
+    defs.forEach(function (d) {
+      var pts = (data[d[0]] || []).filter(function (p) { return p.v != null; });
+      if (pts.length < 2) return;
+      g.strokeStyle = d[1]; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath();
+      pts.forEach(function (p, i) {
+        var x = x0 + i * (x1 - x0) / (pts.length - 1);
+        var y = y1 - (p.v - lo) / (hi - lo) * (y1 - y0);
+        if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      });
+      g.stroke();
+      var last = pts[pts.length - 1];
+      g.fillStyle = d[1];
+      g.beginPath(); g.arc(x1, y1 - (last.v - lo) / (hi - lo) * (y1 - y0), 3, 0, Math.PI * 2); g.fill();
+      g.font = 'bold 12px Segoe UI'; g.fillText(fmt(last.v), x1 - 46, y0 + 12);
+    });
+  }
+
+  function render(s) {
+    var el = document.getElementById('alert');
+    if (s.health && s.health.ok === true) { el.className = 'ok'; el.textContent = '● 桥接健康 · /health 200 · 数据源正常'; }
+    else if (s.health && s.health.ok === false) {
+      el.className = 'bad';
+      el.textContent = '● 不健康：' + ((s.health.reasons || []).join(', ') || 'HTTP ' + s.health.httpStatus) + ' · 请检查告警联动';
+    } else { el.className = 'unknown'; el.textContent = '○ 桥接状态未知（等待首次采样）'; }
+    document.getElementById('status').textContent = '采样间隔 ' + s.intervalSec + 's · 已采 ' + s.samples + ' 点 · ' + new Date().toLocaleTimeString();
+
+    var cards = document.getElementById('cards');
+    var html = '';
+    CARDS.forEach(function (c) {
+      var arr = s.data[c[0]] || [], last = arr.length ? arr[arr.length - 1].v : null;
+      html += '<div class="card"><div class="k">' + c[1] + '</div><div class="v">' + fmt(last) + c[2] + '</div></div>';
+    });
+    cards.innerHTML = html;
+    CHARTS.forEach(function (c) { draw(c[0], c[1], s.data); });
+    var a = (s.alerts || [])[0];
+    document.getElementById('foot').textContent =
+      '来源 ' + s.bridge + ' · 历史 CSV：' + s.csv + ' · 最近告警：' + (a ? a.ts + ' ' + a.text : '无') +
+      ' · 页面每 5s 自动刷新（无需 Docker / Prometheus / Grafana）';
+  }
+
+  function tick() {
+    fetch('/api/series', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(render)
+      .catch(function (e) { document.getElementById('status').textContent = '采集器不可达：' + e.message; });
+  }
+  tick(); setInterval(tick, 5000);
+  window.addEventListener('resize', function () { tick(); });
+})();
+</script>
+</body>
+</html>

@@ -3,6 +3,17 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.3.2-prototype（2026-11-08）
+
+**零 Docker 可观测性方案**（Docker 无法下载 / 内网隔离环境的等价替代，零安装零联网）。
+
+- `deploy/nodocker/collector.js`：Node 内置模块定时抓 `/metrics` + `/health`，18 个指标滚动窗口（默认 720 点 = 1h@5s）+ `metrics-history.csv` 落盘；提供 `/`、`/api/series`、`/api/health`；`/health` 异常即红条告警并写 `alerts.log`，恢复记 recovered；handler 异常有进程级保护，不让采集器整体退出
+- `deploy/nodocker/dashboard.html`：原生 Canvas 四联曲线（消息速率 / 队列深度 / JS Heap / 事件循环延迟）+ 6 指标卡，5s 自动刷新，无任何外部 CDN
+- `deploy/nodocker/start.ps1`：一键拉起桥接 + 采集器 + 大屏标签 + 仪表盘
+- `docs/img/nodocker-dashboard.png`：实测截图，作为文章 Grafana 配图的替代
+
+实测：`/`、`/api/series`、`/api/health` 全 200；UI 遥测（heap 4.8MB / FPS 60）进入指标；kill 桥接 → `health.ok=false` + `bridge unhealthy` 告警，恢复 → `health.ok=true` + `bridge recovered`。原 `deploy/docker-compose.yml` 保留给有 Docker 的环境。
+
 ## v2.3.1-prototype（2026-11-07）
 
 **内网部署与断链恢复加固**（现场演练中暴露的两个真 bug）。
