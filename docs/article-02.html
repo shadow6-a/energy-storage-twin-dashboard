@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>零依赖手写 MQTT 3.1.1 客户端与协议契约驱动的设计 · 储能孪生</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #f6f8fa; color: #24292f; font: 16px/1.85 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .top { background: #0f172a; color: #cbd5e1; padding: 12px 20px; font-size: 13px; }
+  .top a { color: #7dd3fc; text-decoration: none; margin-right: 16px; }
+  main { max-width: 860px; margin: 32px auto 60px; background: #fff; padding: 40px 52px 56px; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 2px 14px rgba(15,23,42,.05); }
+  h1 { font-size: 30px; line-height: 1.4; margin: 0 0 22px; }
+  h2 { font-size: 22px; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+  p { margin: 0 0 16px; }
+  blockquote { margin: 0 0 22px; padding: 10px 18px; background: #f1f5f9; border-left: 4px solid #38bdf8; color: #475569; font-size: 14px; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 16px 18px; border-radius: 8px; overflow-x: auto; font: 13px/1.65 Consolas, "Courier New", monospace; margin: 0 0 20px; }
+  code { background: #f1f5f9; padding: 2px 5px; border-radius: 4px; font: 13px Consolas, monospace; }
+  pre code { background: none; padding: 0; color: inherit; }
+  figure { margin: 0 0 20px; }
+  img { max-width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; display: block; }
+  table { border-collapse: collapse; width: 100%; margin: 0 0 22px; font-size: 14px; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
+  th { background: #f8fafc; }
+  a { color: #0366d6; }
+  hr { border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0; }
+  footer { max-width: 860px; margin: 0 auto 40px; color: #94a3b8; font-size: 12px; text-align: center; }
+  @media (max-width: 700px) { main { margin: 0; padding: 24px 18px; border-radius: 0; } h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <a href="https://github.com/shadow6-a/energy-storage-twin-dashboard">GitHub 仓库</a>
+  <a href="https://shadow6-a.github.io/energy-storage-twin-dashboard/">在线 Demo</a>
+  <a href="article-02.md">Markdown 源码</a>
+  <span>储能孪生 · 技术复盘</span>
+</div>
+<main>
+<h1>零依赖手写 MQTT 3.1.1 客户端与协议契约驱动的设计</h1>
+<blockquote>系列第二篇 · 网络编程 / 协议层<br><a href="https://github.com/shadow6-a/energy-storage-twin-dashboard" target="_blank" rel="noopener">开源仓库</a> · <a href="https://shadow6-a.github.io/energy-storage-twin-dashboard/" target="_blank" rel="noopener">在线 Demo</a> · <a href="https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-01.html" target="_blank" rel="noopener">第一篇：从前端大屏到可观测节点</a></blockquote>
+<h2>引子：为什么在一个「前端项目」里手写协议栈</h2>
+<p>故事始于一个朴素的需求：储能电站现场 EMS 只出 MQTT，而大屏是纯原生 JS。最常规的解法是 <code>npm i mqtt</code>——但现场约束让这条路变窄：工控机离线部署、不允许运行时拉依赖、断连时运维要能逐层解释「现在卡在哪一步」，而且我们只需要协议的一个很小子集。</p>
+<p>MQTT 3.1.1 规范并不神秘。对 QoS0 遥测场景，真正要处理的只有 8 类报文（下表按 5 组列出）：</p>
+<table><thead><tr><th>报文</th><th>固定头</th><th>作用</th></tr></thead><tbody><tr><td>CONNECT / CONNACK</td><td><code>0x10</code> / <code>0x20</code></td><td>握手、鉴权、keepalive</td></tr><tr><td>SUBSCRIBE / SUBACK</td><td><code>0x82</code> / <code>0x90</code></td><td>订阅通配主题</td></tr><tr><td>PUBLISH</td><td><code>0x30</code></td><td>QoS0 遥测收发（双向）</td></tr><tr><td>PINGREQ / PINGRESP</td><td><code>0xC0</code> / <code>0xD0</code></td><td>链路保活</td></tr><tr><td>DISCONNECT</td><td><code>0xE0</code></td><td>优雅下线</td></tr></tbody></table>
+<p>于是我们写了约 170 行 Node <code>net</code> 直连代码，零依赖。这篇文章不劝你造轮子，而是拆开看：<strong>协议客户端真正难的部分，从来不是拼字节，而是边界与契约</strong>。</p>
+<figure><img src="https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/img/mqtt-sequence.png" alt="MQTT 3.1.1 QoS0 报文时序：从 CONNECT 到 PUBLISH 到保活" loading="lazy"></figure>
+<h2>一、变长整数与粘包：TCP 是字节流，不是消息</h2>
+<p>MQTT 的 Remaining Length 是 1~4 字节的变长整数，每个字节只用低 7 位，最高位表示「还有后续字节」：</p>
+<pre><code class="language-js">function encodeLen(n) {
+  const out = [];
+  do {
+    let b = n % 128;
+    n = Math.floor(n / 128);
+    if (n &gt; 0) b |= 0x80;
+    out.push(b);
+  } while (n &gt; 0);
+  return Buffer.from(out);
+}</code></pre>
+<p>解码必须处理<strong>半包</strong>：<code>decodeLen</code> 在字节不足时返回 <code>null</code>，而不是抛异常。<code>sock.on('data')</code> 把数据累积到 <code>buf</code>，只要「头不完整 / 长度字段不完整 / 包体不完整」就 <code>break</code>，等下一批数据：</p>
+<pre><code class="language-js">buf = Buffer.concat([buf, chunk]);
+for (;;) {
+  if (buf.length &lt; 2) break;
+  const l = decodeLen(buf, 1);
+  if (!l) break;                       // 半包：等下一批 TCP 数据
+  const total = 1 + l.bytes + l.value;
+  if (buf.length &lt; total) break;
+  onPacket(buf[0] &gt;&gt; 4, buf[0] &amp; 0x0f, buf.slice(1 + l.bytes, total));
+  buf = buf.slice(total);              // 一次 data 事件里的粘包，继续循环切
+}</code></pre>
+<p>这两段是整个客户端最容易写错的地方。用库时你不会看见它们；自己写时，<strong>它决定了弱网 / 网关分片下会不会莫名其妙丢一整帧遥测</strong>。握手同样是纯字节拼装：协议名 <code>MQTT</code>、版本 <code>4</code>、<code>clean session</code>、可选用户名密码、keepalive 60s。</p>
+<h2>二、韧性：退避要封顶，心跳要能被「强拆」</h2>
+<p>连接状态机收敛在 <code>close</code> 事件里：指数退避 <code>1s → 2s → 4s …</code>，<strong>30 秒封顶</strong>；混沌演练的 <code>drop(ms)</code> 还能在窗口内抑制重连：</p>
+<pre><code class="language-js">const backoff = Math.min(30000, 1000 * Math.pow(2, retry++));
+const suppressed = Math.max(0, suppressUntil - Date.now());
+timer = setTimeout(connect, backoff + suppressed);</code></pre>
+<p><code>api.drop(ms)</code> 只 <code>sock.destroy()</code> 而不置 <code>dead</code> 标志——链路会走正常的 close → 退避 → 重连路径。这不是新功能，而是<strong>把「断网」变成可编程的测试输入</strong>：<code>--chaos-flap 25</code> 每 25 秒强拆一次 TCP，用来验证 Outbox 队列恢复后不会雪崩。</p>
+<p>一个诚实的边界：<code>retry</code> 在 TCP 建连成功时清零，而不是 CONNACK 之后。若 broker 持续返回非零 rc，客户端会以 1 秒间隔反复重连而不是逐步退避。内网固定 broker 够用；面向公网多租户 broker 时，应把清零点推迟到 CONNACK 成功。<strong>写清楚这种边界，比写一句「支持断线重连」有价值得多。</strong></p>
+<figure><img src="https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/img/mqtt-layers.png" alt="协议契约驱动：从 EMS 字节到浏览器 UI 的五层转换" loading="lazy"></figure>
+<h2>三、协议契约驱动：前端根本不认识 MQTT</h2>
+<p>架构收益最大的一处设计：前端只认一组 WebSocket 帧，MQTT 侧的多样性全部被桥接层吸收。</p>
+<table><thead><tr><th>主题</th><th>载荷</th><th>说明</th></tr></thead><tbody><tr><td><code>ess/scada</code></td><td><code>{stations:[{id,power,soc,soh,temp,status}]}</code> 或单站</td><td>1Hz 遥测，批量推荐</td></tr><tr><td><code>ess/alert</code></td><td><code>{id,lv,st,dev,text}</code></td><td>新告警即时进台账</td></tr><tr><td><code>ess/ops</code></td><td>桥接<strong>发布</strong>给 EMS</td><td>处置回写（确认/闭环/撤销）</td></tr></tbody></table>
+<p>桥接按优先级宽松识别 4 类规则（协议帧 / 批量 / 单站 / 告警），现场用 MQTTX 手发一段 JSON 就能见效，不必先对齐 schema：</p>
+<pre><code class="language-js">if (m.t === 'scada' &amp;&amp; Array.isArray(m.stations)) { /* 批量帧 */ }
+if (m.t === 'scada' &amp;&amp; m.id)                     { /* 单站帧 */ }
+if (m.t === 'alert')                             { /* 告警帧 */ }
+if (Array.isArray(m.stations))                   { /* 裸 JSON 批量 */ }
+if (m.id &amp;&amp; ('power' in m || 'soc' in m))         { /* 裸 JSON 单站 */ }
+if (m.id &amp;&amp; (m.lv || m.text))                     { /* 裸 JSON 告警 */ }</code></pre>
+<p>换数据源（CSV 演示 / MQTT / 数据库 / OPC-UA 网关）时，<strong>只改摄取函数，前端一行不动</strong>。反向指令主题也从 <code>--topic</code> 自动推导，不写死：</p>
+<pre><code class="language-js">const OPS_TOPIC = MQTT_TOPIC.replace(/[#*]+$/, '').replace(/\/+$/, '') + '/ops';
+// --topic 'plant/#' → plant/ops</code></pre>
+<p>这个「跟随前缀」的细节是被真实故障教训出来的：早期回写写死 <code>ess/ops</code>，在公共 broker 上撞进别人的告警洪流，测试告警被挤出前端台账窗口，E2E 断言随机失败。改成前缀推导 + 每次测试随机前缀隔离后才稳定全绿。</p>
+<p>契约的另一端是浏览器：<code>?ws=live</code> 在服务器部署时自动推导同域 <code>/ws</code>（https 自动 wss），nginx 反代到 <code>127.0.0.1:9001</code>；断线重连必须沿用<strong>实际连接地址</strong> <code>state.url</code>，而不是退回 <code>config.js</code> 的默认值——这个 bug 曾让「恢复网线」永远连不回网关。这类边角，恰恰是协议契约最容易塌方的地方。</p>
+<h2>四、验证：让契约变成可执行的断言</h2>
+<p><code>tests/mqtt_e2e.ps1</code> 在公共 broker 上跑通 10 条断言，覆盖从字节到 UI 的整条链：</p>
+<pre><code>health source=mqtt → subscribed → msgs ingested → WS connected → 角标「实时」
+→ 3s 内 8 站数值跳动 → S06 判离线 → MQTT 告警进台账 → 回写落 ops.jsonl → 回写发布到 &lt;prefix&gt;/ops</code></pre>
+<p>再叠上 12 条混沌断言（乱序拒收、有界排队、退避上限、最终一致收敛）与 10 条拔网线断言（降级推演 → 4 秒重连 → 平滑回实时）。联调只需三条命令：</p>
+<pre><code class="language-bash">node server/bridge.js 9001 --mqtt mqtt://broker.emqx.io:1883 --topic 'ess/#'
+node server/mqtt-sim.js --prefix ess     # 无 EMS 时的替身，1Hz 遥测 + 随机告警
+# 浏览器 index.html?ws=live ；MQTTX 订阅 ess/# 围观原始报文</code></pre>
+<h2>五、不做什么，比做了什么更重要</h2>
+<p>明确列出边界，方便判断「什么时候该换回成熟库」：</p>
+<ul><li>只实现 <strong>QoS0</strong>（内网网关 99% 的遥测场景）；QoS1/2 的重传与去重未做</li><li>不支持 TLS（<code>net.connect</code>，需要时换 <code>tls.connect</code>）、遗嘱消息、持久会话</li><li>未实现 SUBSCRIBE 失败重试与 QoS1 的 PUBACK</li><li>单 broker、单连接；没有集群 / 共享订阅</li></ul>
+<p>一旦现场要求「指令必达 + 断网补发 + TLS 双向认证」，正确决策是换 <code>mqtt.js</code> 或 EMQX SDK，而不是把这 170 行继续膨胀。<strong>手写协议的价值在于：你知道每一行在做什么、边界在哪、什么时候该放手。</strong></p>
+<h2>结语</h2>
+<p>协议层不是黑魔法。把 TCP 字节流、状态机、退避曲线、摄取契约摊开之后，「MQTT 接入」就从一个依赖包变成了一组可被测试、被观测、被解释的行为。对工业现场来说，这种可解释性本身就是交付物。</p>
+<ul><li>仓库：<a href="https://github.com/shadow6-a/energy-storage-twin-dashboard" target="_blank" rel="noopener">github.com/shadow6-a/energy-storage-twin-dashboard</a></li><li>协议契约全文：<a href="https://github.com/shadow6-a/energy-storage-twin-dashboard/blob/main/docs/data-contract.md" target="_blank" rel="noopener">docs/data-contract.md</a></li><li>在线 Demo：<a href="https://shadow6-a.github.io/energy-storage-twin-dashboard/" target="_blank" rel="noopener">shadow6-a.github.io/energy-storage-twin-dashboard</a></li></ul>
+</main>
+<footer>零依赖构建 · node tests/tools/md2html.js · 托管于 GitHub Pages</footer>
+</body>
+</html>

@@ -10,9 +10,12 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 
-const src = process.argv[2] || 'docs/article-01.md';
-const out = process.argv[3] || src.replace(/\.md$/i, '.html');
-const lines = fs.readFileSync(src, 'utf8').split(/\r?\n/);
+/* 无参数时构建 docs/article-*.md 全部文章；带参数时只构建指定文件 */
+const args = process.argv.slice(2);
+const targets = args.length
+  ? [{ src: args[0], out: args[1] || args[0].replace(/\.md$/i, '.html') }]
+  : fs.readdirSync('docs').filter(x => /^article-\d+\.md$/i.test(x))
+      .map(x => ({ src: 'docs/' + x, out: 'docs/' + x.replace(/\.md$/i, '.html') }));
 
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function inline(s) {
@@ -24,6 +27,8 @@ function inline(s) {
   return t;
 }
 
+function build(src, out) {
+const lines = fs.readFileSync(src, 'utf8').split(/\r?\n/);
 const body = [];
 let i = 0, para = [];
 function flushPara() {
@@ -83,6 +88,7 @@ while (i < lines.length) {
 flushPara();
 
 const title = (lines.find(x => /^#\s/.test(x)) || '技术文章').replace(/^#\s/, '');
+const mdLink = esc(path.basename(src));   /* 按输入文件推导源码链接，第二篇不会错指第一篇 */
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -117,7 +123,7 @@ const html = `<!DOCTYPE html>
 <div class="top">
   <a href="https://github.com/shadow6-a/energy-storage-twin-dashboard">GitHub 仓库</a>
   <a href="https://shadow6-a.github.io/energy-storage-twin-dashboard/">在线 Demo</a>
-  <a href="article-01.md">Markdown 源码</a>
+  <a href="${mdLink}">Markdown 源码</a>
   <span>储能孪生 · 技术复盘</span>
 </div>
 <main>
@@ -129,3 +135,6 @@ ${body.join('\n')}
 `;
 fs.writeFileSync(out, html, 'utf8');
 console.log('built', out, html.length, 'bytes,', body.length, 'blocks');
+}
+
+for (const t of targets) build(t.src, t.out);

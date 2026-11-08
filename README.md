@@ -155,7 +155,12 @@ powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1 -MqttUrl mqtt://<�
 
 - **阅读版（推荐分享）**：<https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-01.html>
 - Markdown 源码：[docs/article-01.md](docs/article-01.md)（复制到掘金 / V2EX 可直接发布）
-- 零依赖构建：`node tests/tools/md2html.js docs/article-01.md`（改完 md 重跑即刷新 HTML，第二篇同用）
+- 零依赖构建：`node tests/tools/md2html.js`（不带参数会构建全部 `docs/article-*.md`；也可指定单篇）
+
+第二篇《零依赖手写 MQTT 3.1.1 客户端与协议契约驱动的设计》：
+
+- **阅读版**：<https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-02.html>
+- Markdown 源码：[docs/article-02.md](docs/article-02.md)（含报文时序图与协议契约分层图）
 
 ## 免责边界
 
