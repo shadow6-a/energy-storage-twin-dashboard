@@ -151,7 +151,11 @@ powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1 -MqttUrl mqtt://<�
 
 ## 技术复盘文章
 
-- 第一篇：[从前端大屏到可观测节点：如何为高频数据可视化构建容错与监控体系](docs/article-01.md)（入口闸门 / Outbox 最终一致 / 遥测剥离测试框架，含两张实测配图）
+第一篇《从前端大屏到可观测节点：如何为高频数据可视化构建容错与监控体系》首发于本仓库 / GitHub Pages（入口闸门 / Outbox 最终一致 / 遥测剥离测试框架，含两张实测配图）：
+
+- **阅读版（推荐分享）**：<https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-01.html>
+- Markdown 源码：[docs/article-01.md](docs/article-01.md)（复制到掘金 / V2EX 可直接发布）
+- 零依赖构建：`node tests/tools/md2html.js docs/article-01.md`（改完 md 重跑即刷新 HTML，第二篇同用）
 
 ## 免责边界
 

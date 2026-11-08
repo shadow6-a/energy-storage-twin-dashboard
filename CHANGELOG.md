@@ -3,6 +3,15 @@
 > 版本规范：语义化版本 `主版本.次版本.修订号`，当前阶段统一携带 `-prototype` 后缀，表示业务原型验证版。
 > 本文件证明原型按迭代管理：每次交付可追溯、可增量微调、可签认。
 
+## v2.3.3-prototype（2026-11-08）
+
+**技术文章首发 Git / GitHub Pages**（主发布渠道从第三方平台改为仓库自身）。
+
+- `docs/article-01.md`：第一篇《从前端大屏到可观测节点》精简发布稿，两张 Pages 公网配图上下排布，深水区三末尾补零 Docker 方案说明
+- `docs/article-01.html`：阅读版（`<https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-01.html>`），带导航、代码块、表格、响应式样式，可直接分享
+- `tests/tools/md2html.js`：零依赖 Markdown → HTML 构建器（标题/引用/代码块/表格/图片/链接/加粗/行内代码），`node tests/tools/md2html.js <file.md>` 可复用于第二篇
+- README 加「技术复盘文章」小节（阅读版 / 源码 / 构建命令）
+
 ## v2.3.2-prototype（2026-11-08）
 
 **零 Docker 可观测性方案**（Docker 无法下载 / 内网隔离环境的等价替代，零安装零联网）。
