@@ -149,6 +149,10 @@ powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1 -MqttUrl mqtt://<�
 
 **接真实 WS**：前端 `?ws=live` 自动推导同域 `/ws`（https 自动 wss），把 `deploy/static/nginx-ws.conf.example` 放到 nginx 配置即可，前端零改动。关键补齐项是 `proxy_read_timeout 3600s`——默认 60 秒会掐断 WS 长连接。断链时角标转琥珀「重连 Ns」、本地推演继续抖动，恢复后按实际 URL 重连（**不会退回 `127.0.0.1:9001` 默认值**）。
 
+## 技术复盘文章
+
+- 第一篇：[从前端大屏到可观测节点：如何为高频数据可视化构建容错与监控体系](docs/article-01.md)（入口闸门 / Outbox 最终一致 / 遥测剥离测试框架，含两张实测配图）
+
 ## 免责边界
 
 - 当前版本**仅提供深色主题**（工业值守标准）；浅色报表主题已在设计系统 tokens 中预留扩展位（色彩令牌集中管理），可依据后续需求立项开发
