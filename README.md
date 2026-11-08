@@ -162,6 +162,8 @@ powershell -ExecutionPolicy Bypass -File tests/chaos_e2e.ps1 -MqttUrl mqtt://<�
 - **阅读版**：<https://shadow6-a.github.io/energy-storage-twin-dashboard/docs/article-02.html>
 - Markdown 源码：[docs/article-02.md](docs/article-02.md)（含报文时序图与协议契约分层图）
 
+**上线校验（push `main` 后 GitHub Actions 自动部署）**：`article-01.html`（11395 B）、`article-02.html`（12788 B）、`article-02.md`、`mqtt-sequence.png`（80663 B）、`mqtt-layers.png`（93410 B）、`nodocker-dashboard.png` 与 `hero-compare.png` 均返回 `200`；Markdown 源码亦可经 `raw.githubusercontent.com` 直接读取。本机推送需走代理出口时，用 `git -c http.proxy=socks5h://127.0.0.1:10808 -c https.proxy=socks5h://127.0.0.1:10808 push origin main`（不改动全局 Git 配置）。
+
 ## 免责边界
 
 - 当前版本**仅提供深色主题**（工业值守标准）；浅色报表主题已在设计系统 tokens 中预留扩展位（色彩令牌集中管理），可依据后续需求立项开发
